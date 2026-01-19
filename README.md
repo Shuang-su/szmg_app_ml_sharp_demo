@@ -21,7 +21,7 @@
 
 ## 🚀 在线演示
 
-- **Netlify**: [https://szmg-sharp-demo.netlify.app](https://szmg-sharp-demo.netlify.app) *(部署后更新)*
+- **Netlify**: [https://szmg-app-ml-sharp-demo.netlify.app](https://szmg-app-ml-sharp-demo.netlify.app) *(部署后更新)*
 
 ## 📱 本地运行
 
