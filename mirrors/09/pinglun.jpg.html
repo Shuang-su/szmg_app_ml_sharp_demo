@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="">
+  <meta name="description" content="">
+  <meta http-equiv="Expires" content="0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-control" content="no-cache">
+  <meta http-equiv="Cache" content="no-cache">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no, shrink-to-fit=no"
+    viewport-fit=cover />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1">
+  <title>页面跑丢啦！- 第一现场</title>
+  <style>
+    html,
+    body,
+    div,
+    p,
+    img,
+    a {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: rgba(255, 0, 0, 0);
+      text-decoration: none;
+    }
+    .line-t-20{
+        height: 20px;
+        width: 100%;
+    }
+
+    img {
+      width: 100%;
+      border: 0;
+      vertical-align: middle;
+    }
+
+    /*无复制*/
+    .no-select {
+      -webkit-touch-callout: none;
+      /* iOS Safari */
+      -webkit-user-select: none;
+      /* Safari */
+      -khtml-user-select: none;
+      /* Konqueror HTML */
+      -moz-user-select: none;
+      /* Firefox */
+      -ms-user-select: none;
+      /* Internet Explorer/Edge */
+      user-select: none;
+      /* Non-prefixed version, currently
+                                    supported by Chrome and Opera */
+    }
+
+    .container {
+      max-width: 900px !important;
+      margin: 0 auto;
+      text-align: center;
+      padding-top: 69px;
+    }
+
+    img {
+      width: 84.2%;
+    }
+
+    p {
+      font-size: 14px;
+      color: #C8C8C8;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+
+    header {
+        position: fixed;
+        width: 100vw;
+        height: 56px;
+        z-index: 888;
+        margin: 0 auto;
+        top: 0;
+        width: 100%;
+        background-size: 100% 100%; 
+        box-shadow: 0 2px 6px 0px rgb(234 234 234 / 40%);
+    }
+    header section{
+        font-size: 16px !important;
+        line-height: 28px !important;
+        color: #000000;
+        word-wrap: break-word;
+        font-family: PingFangSC-regular;
+        text-align: justify !important;
+    }
+    header section aside {
+        position: relative;
+        padding: 0px 5px 0px 50px;
+        height: 56px;
+        text-decoration: none;
+        color: rgb(255, 255, 255);
+        background: #fff;
+        box-shadow: 0 2px 6px 0px rgb(234 234 234 / 40%);
+    }
+    header section aside img {
+        position: absolute;
+        top: 14px;
+        left: 16px;
+        width: 28px;
+        border-radius: 4px;
+    }
+    header section aside .aside-title {
+        position: absolute;
+        top: 18px;
+        left: 52px;
+        color: rgba(16, 16, 16, 100);
+        font-size: 14px;
+        line-height: 21px;
+        font-family: PingFangSC-medium;
+    }
+    header section aside .open {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        z-index: 9;
+        width: 64px;
+        height: 28px;
+        border-radius: 5px;
+        background-color: rgb(255, 70, 146);
+        font-size: 14px;
+        text-align: center;
+        line-height: 28px;
+        color: #FFFFFF;
+        text-decoration-line: none;
+    }
+    .news-list-more-tips {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        margin-bottom: .04rem;
+        padding: 0px 20px;
+    }
+    .news-list-more-tips .news-list-more-tips-img {
+         background: url(https://www.sztv.com.cn/ysz//upload/Image/mrtp/2025/06/09/7f14ace0d5984fc2817dc9b240b9d7f3.png) no-repeat center center;
+         background-size: cover;
+         height: 34px;
+         width: 51.52px;
+    }
+    .news-list-more-tips .news-list-more-tips-title {
+        color: #999999;
+        font-size: 12px;
+        margin-left: .5rem;
+    }
+    .news-list-more-list {
+        width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+        width: 100%
+    }
+    .news-list-more-list .item_article {
+        width:100%;
+    }
+    .news-list-more-list .item_article a{
+        color: #333;
+        text-decoration: none;
+        background-color: transparent;
+    }
+    .news-list-more-list .item_article .item_rankingLi{
+        background-color: #FFFFFF;
+        border-bottom: .5px solid #f0f0f0;
+        padding: 12px 15px 10px;
+        align-items: center;
+        display: flex;
+    }
+    .news-list-more-list .item_article .item_rankingLi .item_rankingLiInner{
+        align-items: center;
+        display: flex;
+    }
+    .news-list-more-list .item_article .item_rankingLi .item_rankingLiInner .item_rankingTopIcon{
+        height: 15px;
+        margin-right: 12px;
+        width: 12px;
+    }
+    .news-list-more-list .item_article .item_rankingLi .item_rankingLiInner .item_index{
+        color: #999999;
+        font-family: PingFang SC,Helvetica,Arial,微软雅黑,黑体;
+        font-size: 14px;
+        font-weight: 500;
+        margin-right: 12px;
+        text-align: center;
+        width: 12px;
+    }
+    .rand_1{
+        color: rgb(255, 70, 146) !important;
+    }
+    .rand_2{
+        color: rgb(255, 70, 146, 0.8) !important;
+    }
+    .rand_3{
+        color: rgb(255, 70, 146, 0.6) !important;
+    }
+    .news-list-more-list .item_article .item_rankingLi .item_rankingLiInner .item_titleAndIcon{
+         -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-flex: 1 1;
+        -ms-flex: 1 1;
+        flex: 1 1;
+    }
+    .news-list-more-list .item_article .item_rankingLi .item_rankingLiInner .item_titleAndIcon .item_text{
+         -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        color: #333;
+        display: -webkit-box;
+        font-family: PingFang SC,Helvetica,Arial,微软雅黑,黑体;
+        font-size: 16px;
+        line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis
+
+    }
+    @media only screen and (min-width: 600px) {
+      p{
+        font-size: 14px;
+      }
+    }
+
+    @media only screen and (min-width: 768px) {
+      p{
+        font-size: 20px;
+      }
+    }
+  </style>
+    <script>
+	(function(w, d, s, q) { 
+		w[q] =w[q] || []; 
+		var f=d.getElementsByTagName(s)[0],j=d.createElement(s); 
+		j.async=true; 
+		j.id='beacon-aplus'; 
+		j.src='https://o.alicdn.com/QTSDK/quicktracking-sdk/qt_web.umd.js'; 
+		f.parentNode.insertBefore(j, f);
+	})(window, document, 'script', 'aplus_queue');
+	aplus_queue.push({ action: 'aplus.setMetaInfo', arguments: ['appKey', 'fpw21aeqn9oafg2v73tfv6qb']  }) 
+	aplus_queue.push({ action: 'aplus.setMetaInfo', arguments: ['aplus-rhost-v', 'quickaplus-he-api-cn-shanghai.aliyuncs.com']  });
+</script>
+</head>
+
+<body>
+    <header class="header" id="header">
+        <section style="width: 100%;">
+            <aside>
+                <img src="logo.png">
+                <p class="aside-title">第一现场</p>
+                <a class="open" href="https://www.sztv.com.cn/app/" target="_blank" style="background-color: rgb(255, 70, 146);">打开</a>
+            </aside>
+        </section>
+    </header>
+    <div class="container no-select">
+        <img src="https://www.sztv.com.cn/ysz/upload/Image/mrtp/2025/06/09/f2e3765871bd4f139deb4dd44a94291a.png" alt="404">
+        <p>抱歉，您访问的页面不存在</p>
+    </div>
+    <div class="line-t-20"></div>
+    <div class="news-list-more-tips">
+        <div class="news-list-more-tips-img"></div>
+        <div class="news-list-more-tips-title">以下内容更精彩</div>
+    </div>
+    <div class="news-list-more-list"></div>
+    <script src="zmy-data-collection-3.0.0.min.js"></script>
+    <script src="yszsdk.min.js"></script>
+    <script src="autotrack.js%3Fproject=dyxc&amp;token=ddf51db3-7c99-1310-a44f-79feb7b63c69"></script>
+    <script>
+        document.getElementById("header").style.display = yszSdkUtils.LoginUtil.checkSilent().env == "Y" ? 'none':'block';
+    </script>
+    <script>
+        const news = [];
+        async function initPage(){
+            const getTopNews = async () => {
+                const {returnData} = await yszSdkUtils.HttpUtil.ajax({
+                    url: `https://apix.scms.sztv.com.cn/api/com/article/getArticleList?tenantId=ysz&banner=0&catalogId=12078&page=1&pageSize=3`,
+                    method: "GET",
+                    auth:true,
+                });
+                if(returnData && returnData.news) {
+                    returnData.news.forEach(item => {
+                        news.push({
+                            title: item.title,
+                            url: item.redirectUrl,
+                            type: "top"
+                        });
+                    });
+                }
+            };
+            const getHotNewsList = async () => {
+                const {returnData} = await yszSdkUtils.HttpUtil.ajax({
+                    url: `https://apix.scms.sztv.com.cn/api/com/article/getArticleList?catalogId=6552&tenantid=ysz&tenantId=ysz&pageSize=20&banner=1&page=1&extendtype=1&specialtype=1`,
+                    method: "GET",
+                    auth:true,
+                });
+                if(returnData && returnData.news) {
+                    returnData.news.forEach(item => {
+                        news.push({
+                            title: item.title,
+                            url: item.redirectUrl,
+                            type: "list"
+                        });
+                    });
+                }
+            };
+            await getTopNews();
+            await getHotNewsList();
+            const newsList = document.querySelector('.news-list-more-list');
+            topNews = news.filter(item => item.type === 'top');
+            news.forEach((item, index) => {
+                const articleItem = document.createElement('div');
+                articleItem.className = 'item_article';
+                // 根据类型添加不同的类名
+                const isTop = item.type === 'top';
+                articleItem.innerHTML = `
+                    <a href="https://www.sztv.com.cn/ysz/${item.url}" target="_blank">
+                        <div class="item_rankingLi">
+                            <div class="item_rankingLiInner">
+                                ${isTop ? '<img src="https://www.sztv.com.cn/ysz/upload/Image/mrtp/2025/06/09/119da84f25c248fe8e103a0b89ee9823.png" class="item_rankingTopIcon" alt="">' : `<div class="item_index rand_${index - topNews.length + 1}">${index - topNews.length + 1}</div>`}
+                                <div class="item_titleAndIcon">
+                                    <div class="item_text">${item.title}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                `;
+                newsList.appendChild(articleItem);
+            });
+        }
+        initPage();
+    </script>
+    <script>
+        // 禁止长按复制
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('selectstart', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('copy', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('cut', function (e) {
+            e.preventDefault();
+        });
+    </script>
+    <script>
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?682ba84f10d0e0e9454d16afea4dcd1e";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    <script>
+        /* 20251215 
+        yszSdkUtils.StUtil.ZMYDataCollection({
+            event: yszSdkUtils.StUtil.EventType.Read,
+            article_id: "H50008",//App下载ID
+        });
+        */
+    </script>
+</body>
+
+</html>

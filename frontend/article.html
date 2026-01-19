@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#e8758f">
+    <title>文章详情</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "playcanvas": "https://esm.run/playcanvas@2.5.0"
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .article-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: white;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            z-index: 1000;
+            border-bottom: 1px solid #eee;
+            padding-top: env(safe-area-inset-top);
+            height: calc(50px + env(safe-area-inset-top));
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            cursor: pointer;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 500;
+            color: #333;
+            margin-right: 40px;
+        }
+        .article-frame {
+            position: fixed;
+            top: 50px;
+            top: calc(50px + env(safe-area-inset-top));
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: none;
+            width: 100%;
+            height: calc(100% - 50px - env(safe-area-inset-top));
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #999;
+            font-size: 14px;
+        }
+        
+        /* 高斯模型容器样式 - 自适应canvas内容 */
+        .splat-container {
+            position: relative;
+            width: 100%;
+            background: #0d0d1a;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 16px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .gsplat-canvas {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            display: block;
+        }
+        
+        .gsplat-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #e91e63;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .loading-progress {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #e91e63;
+        }
+    </style>
+</head>
+<body>
+    <header class="article-header">
+        <button class="back-btn" onclick="history.back()" aria-label="返回">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <div class="header-title">文章详情</div>
+    </header>
+    
+    <div class="loading" id="loading">加载中...</div>
+    
+    <iframe class="article-frame" id="articleFrame" onload="document.getElementById('loading').style.display='none'"></iframe>
+    
+    <script type="module">
+        console.log('🚀 Article.html 脚本开始执行');
+        
+        // 全局错误捕获
+        window.addEventListener('error', (e) => {
+            console.error('❌ 全局错误:', e.message, e.filename, e.lineno);
+        });
+        
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('❌ 未处理的Promise拒绝:', e.reason);
+        });
+        
+        import * as pc from 'playcanvas';
+        
+        // 检查WebGL2支持
+        function supportsWebGL2() {
+            try {
+                const canvas = document.createElement('canvas');
+                return !!(canvas.getContext('webgl2'));
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        const isWebGL2Supported = supportsWebGL2();
+        console.log('WebGL2支持:', isWebGL2Supported);
+        
+        // 陀螺仪相关变量
+        let gyroPermissionGranted = false;
+        let gyroListenerAdded = false;
+        let initialGyro = null;
+        
+        // 请求陀螺仪权限（复刻gsplat-viewer2.html）
+        async function requestGyroPermission() {
+            if (!window.DeviceOrientationEvent) {
+                console.log('设备不支持陀螺仪');
+                return false;
+            }
+
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    console.log('请求 iOS 陀螺仪权限...');
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    console.log('陀螺仪权限结果:', permission);
+                    if (permission !== 'granted') {
+                        console.log('陀螺仪权限被拒绝');
+                        return false;
+                    }
+                    gyroPermissionGranted = true;
+                } catch (error) {
+                    console.error('请求陀螺仪权限失败:', error);
+                    return false;
+                }
+            } else {
+                gyroPermissionGranted = true;
+            }
+
+            console.log('陀螺仪初始化成功');
+            return true;
+        }
+        
+        // 创建PlayCanvas应用并加载高斯模型（完全复刻gsplat-viewer2.html）
+        async function createGSplatViewer(container, plyName) {
+            const canvas = container.querySelector('.gsplat-canvas');
+            const loadingEl = container.querySelector('.gsplat-loading');
+            
+            try {
+                // 创建图形设备
+                const device = await pc.createGraphicsDevice(canvas, {
+                    deviceTypes: ['webgl2'],  // 只使用WebGL2
+                    antialias: false
+                });
+                device.maxPixelRatio = Math.min(window.devicePixelRatio, 2);
+                
+                // 创建应用
+                const createOptions = new pc.AppOptions();
+                createOptions.graphicsDevice = device;
+                createOptions.componentSystems = [
+                    pc.RenderComponentSystem,
+                    pc.CameraComponentSystem,
+                    pc.LightComponentSystem,
+                    pc.GSplatComponentSystem
+                ];
+                createOptions.resourceHandlers = [
+                    pc.TextureHandler,
+                    pc.ContainerHandler,
+                    pc.GSplatHandler
+                ];
+                
+                const app = new pc.AppBase(canvas);
+                app.init(createOptions);
+                app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+                app.setCanvasResolution(pc.RESOLUTION_AUTO);
+                
+                // 强制canvas使用16:9比例 - 修正PlayCanvas的尺寸设置
+                const resizeCanvas = () => {
+                    const containerWidth = container.clientWidth;
+                    const targetHeight = Math.round(containerWidth * 9 / 16);
+                    canvas.style.width = containerWidth + 'px';
+                    canvas.style.height = targetHeight + 'px';
+                    canvas.width = containerWidth * window.devicePixelRatio;
+                    canvas.height = targetHeight * window.devicePixelRatio;
+                };
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+                
+                // 创建相机 - 使用gsplat-viewer2.html的配置
+                const camera = new pc.Entity('camera');
+                camera.addComponent('camera', {
+                    clearColor: new pc.Color(0.05, 0.05, 0.1),
+                    fov: 35,
+                    horizontalFov: false,
+                    nearClip: 0.1,
+                    farClip: 1000
+                });
+                camera.setLocalPosition(0, 0, 0.0);  // 与gsplat-viewer2.html保持一致
+                camera.lookAt(0, 0, 0);
+                app.root.addChild(camera);
+                
+                // 创建光源
+                const light = new pc.Entity('light');
+                light.addComponent('light', {
+                    type: 'directional',
+                    color: new pc.Color(1, 1, 1),
+                    intensity: 1
+                });
+                light.setLocalEulerAngles(45, 30, 0);
+                app.root.addChild(light);
+                
+                // 启动应用
+                app.start();
+                
+                // 加载PLY模型
+                const url = `/data/ply/${plyName}.ply`;
+                const asset = new pc.Asset(plyName, 'gsplat', { url: url });
+                
+                await new Promise((resolve, reject) => {
+                    asset.on('load', resolve);
+                    asset.on('error', reject);
+                    app.assets.add(asset);
+                    app.assets.load(asset);
+                });
+                
+                // 更新加载提示
+                if (loadingEl) {
+                    loadingEl.innerHTML = `
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">渲染3D模型...</div>
+                    `;
+                }
+                
+                // 创建高斯泼溅实体
+                const splatEntity = new pc.Entity('gsplat');
+                splatEntity.addComponent('gsplat', { asset: asset });
+                splatEntity.setLocalEulerAngles(180, 0, 0); // 默认翻转
+                app.root.addChild(splatEntity);
+                
+                // 模型控制变量
+                let modelPosition = { x: 0, y: 0, z: 0 };
+                let targetModelPosition = { x: 0, y: 0, z: 0 };
+                let modelRotation = { x: 180, y: 0, z: 0 };
+                let targetModelRotation = { x: 180, y: 0, z: 0 };
+                let initialGyro = null;
+                let scrollYOffset = 0;
+                
+                const config = {
+                    parallaxIntensity: 0.3,
+                    gyroEnabled: true
+                };
+                
+                // 更新循环
+                app.on('update', (dt) => {
+                    const smoothFactor = 0.1;
+                    
+                    modelPosition.x += (targetModelPosition.x - modelPosition.x) * smoothFactor;
+                    const finalTargetY = targetModelPosition.y + scrollYOffset;
+                    modelPosition.y += (finalTargetY - modelPosition.y) * smoothFactor;
+                    modelPosition.z += (targetModelPosition.z - modelPosition.z) * smoothFactor;
+                    
+                    modelRotation.x += (targetModelRotation.x - modelRotation.x) * smoothFactor;
+                    modelRotation.y += (targetModelRotation.y - modelRotation.y) * smoothFactor;
+                    modelRotation.z += (targetModelRotation.z - modelRotation.z) * smoothFactor;
+                    
+                    splatEntity.setLocalPosition(modelPosition.x, modelPosition.y, modelPosition.z);
+                    splatEntity.setLocalEulerAngles(modelRotation.x, modelRotation.y, modelRotation.z);
+                });
+                
+                // ease-out衰减曲线
+                function easeOutCubic(value, threshold, max) {
+                    const absValue = Math.abs(value);
+                    if (absValue <= threshold) return value;
+                    const sign = value >= 0 ? 1 : -1;
+                    const normalized = (absValue - threshold) / (max - threshold);
+                    const damped = threshold + (max - threshold) * (1 - Math.pow(1 - normalized, 3));
+                    return sign * Math.min(damped, max);
+                }
+                
+                // 鼠标控制
+                let isDragging = false;
+                let lastX = 0, lastY = 0;
+                
+                canvas.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                });
+                
+                canvas.addEventListener('mouseup', () => isDragging = false);
+                canvas.addEventListener('mouseleave', () => isDragging = false);
+                
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!isDragging) {
+                        const rect = canvas.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        const normalizedX = (e.clientX - centerX) / (rect.width / 2);
+                        const normalizedY = (e.clientY - centerY) / (rect.height / 2);
+                        
+                        const simulatedGamma = normalizedX * 35;
+                        const simulatedBeta = normalizedY * 25;
+                        const dampenedBeta = easeOutCubic(simulatedBeta, 15, 25) * 0.5;
+                        const dampenedGamma = easeOutCubic(simulatedGamma, 20, 35);
+                        
+                        targetModelRotation.x = 180 + dampenedBeta * config.parallaxIntensity;
+                        targetModelRotation.y = -dampenedGamma * config.parallaxIntensity;
+                        
+                        const positionIntensity = 0.008;
+                        targetModelPosition.x = -dampenedGamma * positionIntensity;
+                        targetModelPosition.y = dampenedBeta * positionIntensity * 0.5;
+                    } else {
+                        const deltaX = e.clientX - lastX;
+                        const deltaY = e.clientY - lastY;
+                        targetModelRotation.y += deltaX * 0.5;
+                        targetModelRotation.x += deltaY * 0.5;
+                        lastX = e.clientX;
+                        lastY = e.clientY;
+                    }
+                });
+                
+                // 陀螺仪控制
+                if (window.DeviceOrientationEvent) {
+                    const handleOrientation = (e) => {
+                        if (!config.gyroEnabled || e.beta === null || e.gamma === null) return;
+                        
+                        if (!initialGyro) {
+                            initialGyro = { beta: e.beta, gamma: e.gamma };
+                            return;
+                        }
+                        
+                        const deltaBeta = e.beta - initialGyro.beta;
+                        const deltaGamma = e.gamma - initialGyro.gamma;
+                        
+                        const dampenedBeta = easeOutCubic(deltaBeta, 15, 25) * 0.5;
+                        const dampenedGamma = easeOutCubic(deltaGamma, 20, 35);
+                        
+                        targetModelRotation.x = 180 + dampenedBeta * config.parallaxIntensity;
+                        targetModelRotation.y = -dampenedGamma * config.parallaxIntensity;
+                        
+                        const positionIntensity = 0.008;
+                        targetModelPosition.x = -dampenedGamma * positionIntensity;
+                        targetModelPosition.y = dampenedBeta * positionIntensity * 0.5;
+                    };
+                    
+                    // 添加陀螺仪监听器
+                    if (!gyroListenerAdded) {
+                        window.addEventListener('deviceorientation', handleOrientation, true);
+                        gyroListenerAdded = true;
+                        console.log('✅ 陀螺仪事件监听已添加');
+                    }
+                }
+                
+                // 滚动视差 - 监听iframe内部滚动
+                function getElementViewportPosition(element) {
+                    const rect = element.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const elementCenter = rect.top + rect.height / 2;
+                    const viewportCenter = viewportHeight / 2;
+                    const normalizedPosition = (elementCenter - viewportCenter) / (viewportHeight / 2);
+                    return Math.max(-1, Math.min(1, normalizedPosition));
+                }
+                
+                function easeOutCubicPosition(value, threshold, max) {
+                    const absValue = Math.abs(value);
+                    if (absValue <= threshold) return value;
+                    const sign = value >= 0 ? 1 : -1;
+                    const normalized = (absValue - threshold) / (max - threshold);
+                    const damped = threshold + (max - threshold) * (1 - Math.pow(1 - normalized, 3));
+                    return sign * Math.min(damped, max);
+                }
+                
+                let initialScrollOffset = null;
+                
+                function updateScrollParallax() {
+                    const position = getElementViewportPosition(container);
+                    if (initialScrollOffset === null) {
+                        initialScrollOffset = position;
+                    }
+                    const rawOffset = position - initialScrollOffset;
+                    const dampenedOffset = easeOutCubicPosition(rawOffset, 0.6, 1.0);
+                    const maxYOffset = 0.5 * 0.6;
+                    scrollYOffset = -dampenedOffset * maxYOffset;
+                }
+                
+                // 监听iframe内部滚动
+                try {
+                    const iframeWin = document.getElementById('articleFrame').contentWindow;
+                    if (iframeWin) {
+                        iframeWin.addEventListener('scroll', updateScrollParallax, { passive: true });
+                    }
+                } catch (e) {
+                    // 忽略跨域错误
+                }
+                window.addEventListener('scroll', updateScrollParallax, { passive: true });
+                updateScrollParallax();
+                
+                // 陀螺仪控制（复刻gsplat-viewer2.html）
+                if (gyroPermissionGranted && !gyroListenerAdded) {
+                    window.addEventListener('deviceorientation', (event) => {
+                        if (!config.gyroEnabled) return;
+                        
+                        if (!initialGyro) {
+                            initialGyro = { beta: event.beta || 0, gamma: event.gamma || 0 };
+                        }
+                        
+                        const deltaX = (event.gamma || 0) - initialGyro.gamma;
+                        const deltaY = (event.beta || 0) - initialGyro.beta;
+                        
+                        const maxRotation = 15;
+                        const dampedX = easeOutCubic(deltaX, 10, 30);
+                        const dampedY = easeOutCubic(deltaY, 10, 30);
+                        
+                        targetModelRotation.y = pc.math.clamp(-dampedX * 1.5, -maxRotation, maxRotation);
+                        targetModelRotation.x = 180 + pc.math.clamp(dampedY * 1.5, -maxRotation, maxRotation);
+                    });
+                    gyroListenerAdded = true;
+                }
+                
+                // 成功! 隐藏加载提示
+                if (loadingEl) loadingEl.style.display = 'none';
+                console.log('✓ 3D模型加载成功:', plyName);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('✗ 3D模型加载失败:', plyName, error);
+                if (loadingEl) loadingEl.textContent = '加载失败';
+                return false;
+            }
+        }
+        
+        // 文章ID到mirrors目录的映射
+        const articleMap = {
+            1: '01',   // 腾讯新闻
+            2: '02',   // 深度丨三航母时代
+            3: '03',   // 深圳青年住房
+            4: '04',   // 海南自贸港
+            5: '05',   // 外交部亚洲特使
+            6: '06',   // 元旦火车票
+            7: '07',   // 咏春舞剧
+            8: '08',   // 食物银行
+            9: '12',   // 期待！深圳奇迹
+            10: '09',  // 中央财办
+            11: '10',  // 山东舰入列6周年
+            12: '11'   // 台当局小红书
+        };
+        
+        // 获取当前文章ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get('id') || '1';
+        const mirrorDir = articleMap[articleId] || '01';
+        
+        console.log(`📖 加载文章ID: ${articleId} -> mirrors/${mirrorDir}`);
+        
+        // 获取iframe元素
+        const iframe = document.getElementById('articleFrame');
+        
+        if (!iframe) {
+            console.error('❌ 找不到iframe元素');
+        }
+        
+        // 先设置load事件监听器
+        iframe.addEventListener('load', async () => {
+            console.log('📄 Iframe加载完成');
+            
+            // 请求陀螺仪权限（首次交互时）
+            const requestPermissionOnInteraction = async () => {
+                await requestGyroPermission();
+                document.removeEventListener('touchstart', requestPermissionOnInteraction);
+                document.removeEventListener('click', requestPermissionOnInteraction);
+            };
+            document.addEventListener('touchstart', requestPermissionOnInteraction, { once: true });
+            document.addEventListener('click', requestPermissionOnInteraction, { once: true });
+            
+            // 等待iframe完全渲染
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                if (!iframeDoc) {
+                    console.error('❌ 无法访问iframe内容（可能是跨域问题）');
+                    return;
+                }
+                
+                console.log('🔍 iframe src:', iframe.src);
+                console.log('🔍 iframe contentWindow.location:', iframe.contentWindow.location.href);
+                console.log('🔍 iframe DOM ready state:', iframeDoc.readyState);
+                console.log('🔍 iframe body:', iframeDoc.body ? '存在' : '不存在');
+                console.log('🔍 iframe HTML length:', iframeDoc.documentElement.outerHTML.length);
+                
+                // 输出HTML的前1000个字符用于调试
+                const htmlPreview = iframeDoc.documentElement.outerHTML.substring(0, 1000);
+                console.log('🔍 iframe HTML preview (前1000字符):\n', htmlPreview);
+                
+                // 先查找所有div
+                const allDivs = iframeDoc.querySelectorAll('div');
+                console.log('🔍 所有div数量:', allDivs.length);
+                
+                // 查找带class的div
+                const divsWithClass = iframeDoc.querySelectorAll('div[class]');
+                console.log('🔍 带class的div数量:', divsWithClass.length);
+                
+                // 查找所有带data-ply的元素
+                const allDataPly = iframeDoc.querySelectorAll('[data-ply]');
+                console.log('🔍 带data-ply的元素:', allDataPly.length);
+                
+                // 直接搜索HTML中是否包含splat-container
+                const htmlContent = iframeDoc.documentElement.outerHTML;
+                const hasSplatContainer = htmlContent.includes('splat-container');
+                console.log('🔍 HTML中包含splat-container:', hasSplatContainer);
+                
+                if (hasSplatContainer) {
+                    console.log('🔍 尝试用不同选择器查找...');
+                    const test1 = iframeDoc.querySelector('.splat-container');
+                    const test2 = iframeDoc.querySelector('div.splat-container');
+                    const test3 = iframeDoc.querySelectorAll('.splat-container');
+                    console.log('querySelector(.splat-container):', test1);
+                    console.log('querySelector(div.splat-container):', test2);
+                    console.log('querySelectorAll(.splat-container):', test3);
+                }
+                
+                // 查找所有带 data-ply 属性的容器
+                const gsplatContainers = iframeDoc.querySelectorAll('.splat-container[data-ply]');
+                
+                console.log('🔍 querySelectorAll结果:', gsplatContainers);
+                console.log('🔍 找到的容器数量:', gsplatContainers.length);
+                
+                if (gsplatContainers.length === 0) {
+                    console.log('ℹ️ 当前文章没有3D模型');
+                    return;
+                }
+                
+                console.log(`🎯 找到 ${gsplatContainers.length} 个3D模型容器`);
+                
+                // 使用 Intersection Observer 实现延迟加载，减少内存压力
+                const loadedModels = new Set();
+                
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '300px',  // 提前300px开始加载
+                    threshold: 0.01
+                };
+                
+                const modelObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const container = entry.target;
+                            const plyName = container.getAttribute('data-ply');
+                            
+                            if (!loadedModels.has(plyName)) {
+                                loadedModels.add(plyName);
+                                const index = Array.from(gsplatContainers).indexOf(container);
+                                console.log(`👁️ [${index + 1}/${gsplatContainers.length}] 模型进入视口,开始加载: ${plyName}`);
+                                
+                                createGSplatViewer(container, plyName).catch(err => {
+                                    console.error(`❌ 模型加载失败 [${plyName}]:`, err);
+                                    loadedModels.delete(plyName);  // 失败后允许重试
+                                });
+                                
+                                // 加载后停止观察此容器
+                                modelObserver.unobserve(container);
+                            }
+                        }
+                    });
+                }, observerOptions);
+                
+                // 观察所有容器
+                gsplatContainers.forEach((container) => {
+                    modelObserver.observe(container);
+                });
+                
+            } catch (error) {
+                console.error('❌ iframe初始化错误:', error);
+            }
+        });
+        
+        // 最后加载iframe内容 - 添加时间戳绕过Safari缓存
+        iframe.src = '/mirrors/' + mirrorDir + '/index.html?t=' + Date.now();
+    </script>
+</body>
+</html>

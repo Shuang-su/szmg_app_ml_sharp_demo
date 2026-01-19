@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#e8758f">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>壹深圳 - Spatial News Demo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/spatial.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 安全区域适配 */
+        body {
+            padding-top: env(safe-area-inset-top);
+        }
+        .header {
+            padding-top: env(safe-area-inset-top);
+            height: calc(var(--header-height) + env(safe-area-inset-top));
+        }
+        .header::before {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="header-left">
+            <img src="img/logo.png" alt="壹深圳" class="header-logo">
+        </div>
+        <div class="header-center">
+            <div class="search-bar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span>低空经济</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn">
+                <span class="badge">看</span>
+                <small>深圳电视</small>
+            </button>
+            <button class="icon-btn">
+                <span class="badge">听</span>
+                <small>深圳广播</small>
+            </button>
+        </div>
+    </header>
+
+    <!-- 标签导航 -->
+    <nav class="tabs">
+        <a href="#" class="tab active">推荐</a>
+        <a href="gsplat-viewer.html" class="tab-splat">3D视差</a>
+        <a href="#" class="tab">深视新闻</a>
+        <a href="#" class="tab">直播</a>
+        <a href="#" class="tab">民生</a>
+        <a href="#" class="tab">时事</a>
+        <a href="#" class="tab">财经</a>
+        <a href="#" class="tab">科技</a>
+        <a href="#" class="tab">娱乐</a>
+        <a href="#" class="tab">体育</a>
+        <button class="tab-more" aria-label="更多">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="news-feed" id="newsFeed">
+        <!-- 新闻卡片将通过JS动态加载 -->
+    </main>
+
+    <!-- 底部导航栏 -->
+    <footer class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>首页</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <polygon points="10 9 15 12 10 15 10 9" fill="currentColor"></polygon>
+            </svg>
+            <span>视频</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5z"></path>
+                <circle cx="9.5" cy="9.5" r="5.5"></circle>
+            </svg>
+            <span>报料</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <span>服务</span>
+        </a>
+        <a href="#" class="nav-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path>
+            </svg>
+            <span>我的</span>
+        </a>
+    </footer>
+
+    <script src="js/spatial-parallax.js"></script>
+    <script src="js/articles-data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

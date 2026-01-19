@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>腾讯新闻何毅进：“可信度”是AI时代最稀缺的资源</title>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0" name="viewport"/>
+<meta content="telephone=no" name="format-detection"/>
+<meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"/>
+<meta content="腾讯新闻何毅进：“可信度”是AI时代最稀缺的资源" name="keywords"/>
+<meta content="腾讯新闻何毅进：“可信度”是AI时代最稀缺的资源" name="description"/>
+<meta content="腾讯新闻何毅进：“可信度”是AI时代最稀缺的资源" name="jmapp-share"/>
+<link href="favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+<link href="mui.css" rel="stylesheet"/>
+<link href="host.css" rel="stylesheet"/>
+<link href="style.css%3F202312144.css" rel="stylesheet" type="text/css"/>
+<script>
+</script>
+</head>
+<body>
+<div class="share-mask hide">
+<div class="container-open">
+<span>
+                如果已经安装应用，请在右上角选择浏览器打开
+            </span>
+</div>
+<div class="container-logo">
+<img class="logo" src="logo-down.png"/>
+<img class="day" src="day.png"/>
+</div>
+<div id="download" onclick="window.checkPhoneType();">打开</div>
+<img class="botbg" src="botbg.png"/>
+</div>
+<div class="layout">
+<!-- 顶部下载 -->
+<header class="header">
+<div class="header-inner">
+<div class="header-container">
+<div>
+<section style="width: 100%;">
+<aside>
+<img src="logo.png"/>
+<p class="aside-title">第一现场</p>
+<a class="open" href="javascript:void(0);" onclick="window.awakeApp(`80611955`);" target="_blank">打开</a>
+</aside>
+</section>
+</div>
+</div>
+</div>
+</header>
+<!-- type=2 图片新闻 -->
+<div class="content">
+<!-- 微视频多了个video -->
+<!-- type=5 微视频-->
+<h1 class="article-title">腾讯新闻何毅进：“可信度”是AI时代最稀缺的资源</h1>
+<div class="info">
+                            <img src="https://www.sztv.com.cn/ysz/detail_2023/img/line.png">
+                            <span class="author">直播深圳</span>
+                            <span class="time">2025-12-18 15:26:08</span>
+                        </div>
+<div class="article-content">
+<div class="article-body ysz_read_content" id="content"><div id="editWrap" style="font-family:微软雅黑;font-size:18px;letter-spacing:1px;line-height: normal;margin-top: 5px;margin-bottom: 5px;color: undefined;text-align: undefined;text-indent:undefined ">
+<p style="width: 100%; line-height: 1.75em;"> 在AI技术席卷资讯行业的今天，我们正面临信息极度丰饶与认知深度焦灼并存的困境。一方面，AI生成内容的便捷性使得深度伪造、批量造谣泛滥成灾，从名人换脸到专业报告失真，获取真实准确信息的成本不降反升；另一方面，传统算法在AI加持下加剧了信息茧房、认知浅化和观点极化，用户视野窄化，理性讨论空间被压缩。</p>
+<p style="width: 100%;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 面对这一挑战，腾讯新闻负责人何毅进在2025腾讯ConTech大会上指出,AI是双刃剑，关键在于使用者的选择。他提出，优质资讯产品必须完成双重进化：从"内容平台"进化为"可信生态"，从"信息推送者"升级为"认知协作者"。其最高价值不是填满用户时间，而是点亮用户思维。</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<div class="splat-container" data-ply="1d30d1e60f37" style="position:relative;width:100%;min-height:400px;background:#0d0d1a;border-radius:16px;overflow:hidden;margin:16px 0;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+    <canvas class="gsplat-canvas" style="width:100%;height:100%;min-height:400px;display:block;"></canvas>
+    <div class="gsplat-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#999;font-size:12px;">加载3D模型...</div>
+</div>
+<p class="zwf" style="width: 100%; display: none;"> <br/></p>
+<p style="width: 100%;"> <strong><br/></strong></p>
+<p style="width: 100%;"> <strong>可信为基：精品资讯的立身之本</strong></p>
+<p style="width: 100%; line-height: 1.75em;"> <span style="caret-color: red;">在何毅进看来，可信度是AI时代最稀缺的资源，资讯产品必须以可信内容生态为基座。打造这一生态，需要让每一个内容账号都拥有专属的信息质量数字档案，通过动态升降级机制实现优胜劣汰。那些持续产出低质内容、造谣传谣的账号，可信评分会不断下降，最终被暂停收录；而坚持产出优质、真实内容的账号，则能获得更高评分，获得更多曝光机会，从源头让优质信源浮上来，劣质信源沉下去。</span></p>
+<p style="width: 100%;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 技术不应成为虚假信息的帮凶，而应成为事实核查的“前哨”。何毅进提出，要构建人机协同的事实核查机制，利用大模型的语义矛盾检测、跨模态溯源等能力，对图片、视频等内容进行交叉比对，监测异常传播的信息。AI会自动整理预警信息、矛盾点和溯源线索，形成清晰的“任务核查单”提交给专家团队，辅助人类高效识别深度伪造、旧闻新用等问题。更重要的是，这一生态应是开放共治的，联合权威媒体、学术机构、领域专家组成专家团，共同定义和完善可信度标准，让事实核查更具专业性和公信力。</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 透明化的用户体验设计同样关键。何毅进设想，未来的资讯产品应提供便捷的“信息溯源”功能，用户在阅读时，任何关键事实和数据都能点击查看原始出处，清晰了解信息来自官方通报、现场直击、专家解读还是当事人陈述，同时看到信源的数字档案，让用户能够自主判断信息的准确性，真正做到“心中有数”。</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<p style="width: 100%;"> <strong>协作赋能：精品资讯的价值内核</strong></p>
+<p style="width: 100%; line-height: 1.75em;"> 解决了信息真伪的问题，还要破解认知局限的困境。何毅进认为，资讯产品必须从“信息推送者”升级为“认知协作者”，从“猜你喜欢”转向“助你成长”。这意味着资讯产品要具备“知其然知其所以然”的能力，不再只是推送孤立的信息碎片，而是将其组织成有背景、有联系的完整叙事。比如在报道持续发展的新闻事件时，自动生成清晰的“时间线”，让用户快速掌握前因后果；在解读专业领域新闻时，像最近热门的 DeepSeek稀疏注意力机制，及时关联核心概念、技术原理和行业意义，降低认知门槛，帮助用户还原世界全貌。</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 面对复杂争议性事件，资讯产品应具备“看见树木看见森林”的能力，打破单一叙事的局限。何毅进提出，要平衡呈现冲突各方的直接陈述、证据和核心诉求，避免片面解读。比如一项经济政策出台，不仅要呈现经济学家的专业分析，还要引入社会学家、伦理学家甚至普通市民的视角，让用户获得全面认知。更可以设置 “模拟立场” 功能，让用户暂时切换到政策制定者、企业主、员工等不同角色看待问题，培养多元思考习惯和共情能力。</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 激发用户的好奇心，让资讯消费从“终点”变为探究的“起点”，是认知协作的更高追求。何毅进规划了一系列实用工具包：对于数据类新闻，提供趋势图、对比图等可视化工具，同时提示数据来源和解读陷阱；对于观点类内容，开发“逻辑谬误高亮”功能，帮助用户识别偷换概念、诉诸情感等常见逻辑错误；设置“一键追问”功能，用户对任何段落、数据、词汇有疑问，都能点击提问，AI会智能生成相关问题并提供答案或信源指引；还可以加入“假设发生器”，支持用户进行“如果…… 会怎样？”的推演，基于现有数据模型展示不同可能性结果，激发深度思考。</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 这些理念并非空中楼阁，腾讯新闻已在实践中积累了坚实基础。过去四年，腾讯新闻果断对内容做“减法”，去除了95%的存量低质内容，重塑内容价值标准；旗下 “较真” 业务十年间提供了超25亿人次的辟谣科普服务，积累了丰富的事实核查经验。如今，从春节、高考等重要主题的AI原生内容生产，到新闻时间轴、专业名词解释、AI播客等智能化功能落地，腾讯新闻正在将“可信生态”与“认知协作”的理念逐步转化为现实。</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 何毅进在演讲中强调：“AI时代，人们稀缺的不是信息本身，而是经过验证的真相；需要的不是更多声音，而是值得信赖的解读；渴望的不是更大音量，而是凝聚共识的理性表达。”</p>
+<p style="width: 100%; line-height: 1.75em;"> <br/></p>
+<p style="width: 100%; line-height: 1.75em;"> 构建可信生态、成为认知协作者、鼓励大声思考，这不仅是腾讯新闻的探索，更是整个资讯行业的未来方向。当资讯产品真正坚守真实与深度，以技术赋能用户思维成长，就能在AI浪潮中站稳脚跟，实现“点亮思维”的终极价值，让用户在信息海洋中找到方向，在理性交流中凝聚共识。</p>
+<p style="width: 100%;"> <br/></p>
+</div></div>
+<div class="bottomInfo">
+</div>
+<p class="bq">版权声明：节目版权由深圳广播电影电视集团所有，未经许可，严禁转载</p>
+</div>
+<!-- type=else 其他结束-->
+<!-- 关键词标签 -->
+<div class="tabbar" id="tabId">
+</div>
+<div class="box-title recommend" id="recommends">
+<img alt="" src="line.png"/>
+                                            相关推荐
+                                        </div>
+<div class="box-content">
+<div class="news-list" id="keyList">
+</div>
+</div>
+<!-- 评论 -->
+<div class="hot_comment">
+<div class="box-title">
+<img alt="" src="line.png"/>
+                                                评论
+                                            </div>
+<div class="no_comment">
+<img class="sofa" src="sofa.png"/>
+<span>还没有人发言，快来抢沙发吧!</span>
+</div>
+<div class="new_comment_list">
+<div class="hot_list">
+</div>
+</div>
+</div>
+<!-- 发表评论 -->
+<div id="send_comment">
+<input id="send_comment_content" placeholder="我来说两句"/>
+<img alt="" id="addCommentBtn" src="send.png"/>
+</div>
+<a class="backButton" onclick="goBack();" style="display: none;">
+<img alt="返回" src="backButton.png"/>
+</a>
+</div>
+<!-- type=1 3 5 等 其他新闻结束 -->
+</div>
+<input id="avatar" type="hidden" value=""/>
+<input id="nickname" type="hidden" value=""/>
+<input id="openid" type="hidden" value=""/>
+<input id="article" type="hidden" value="80611955"/>
+<input id="adduser" type="hidden" value="cmca3029b99"/>
+<input id="siteid" type="hidden" value="67"/>
+<input id="siteurl" type="hidden" value="https://www.sztv.com.cn/ysz/"/>
+<input id="referName" type="hidden" value=""/>
+<input id="author" type="hidden" value="直播深圳"/>
+<input id="authorId" type="hidden" value=""/>
+<input id="publishdate" type="hidden" value="2025-12-18 15:26:08"/>
+<input id="logo" type="hidden" value="1_992374ffd49e40f7982416b9b5e2daf7.jpg"/>
+<input id="title" type="hidden" value="腾讯新闻何毅进：“可信度”是AI时代最稀缺的资源"/>
+<input id="summary" type="hidden" value=""/>
+</body>
+</html>

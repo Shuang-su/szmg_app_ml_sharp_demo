@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高斯泼溅空间视差 - Spatial News Demo</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "playcanvas": "https://esm.run/playcanvas@2.5.0"
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #e91e63;
+            --primary-light: #ff6090;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a1a2e 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(233, 30, 99, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .back-btn {
+            position: absolute;
+            left: 16px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .container {
+            padding: 72px 16px 100px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .intro {
+            text-align: center;
+            padding: 24px 0;
+        }
+        
+        .intro h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .intro p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+        }
+        
+        .splat-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;  /* 固定16:9宽高比,确保视角一致 */
+            background: #0d0d1a;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 16px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        #splat-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .loading-progress {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--primary-color);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .ply-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+            justify-content: center;
+        }
+        
+        .ply-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .ply-btn:hover, .ply-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .controls-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .controls-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .control-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .control-slider {
+            width: 120px;
+            accent-color: var(--primary-color);
+        }
+        
+        .control-value {
+            font-size: 12px;
+            color: var(--primary-color);
+            min-width: 40px;
+            text-align: right;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: var(--primary-color);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+        }
+        
+        .status-dot.inactive {
+            background: #ff5252;
+        }
+
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #ff5252;
+            padding: 20px;
+        }
+
+        .tip {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        /* 滚动演示区域 */
+        .scroll-demo-section {
+            margin-top: 32px;
+            padding: 24px 0;
+        }
+        
+        .scroll-demo-section h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .scroll-demo-section > p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .demo-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .demo-card h4 {
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: var(--primary-light);
+        }
+        
+        .demo-card p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="index.html" class="back-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </a>
+        <h1>🎨 高斯泼溅空间视差</h1>
+    </header>
+
+    <div class="container">
+        <div class="intro">
+            <h2>Gaussian Splatting Spatial Parallax</h2>
+            <p>使用PlayCanvas引擎加载3D高斯泼溅模型<br>支持陀螺仪和鼠标控制视角，体验空间视差效果</p>
+        </div>
+
+        <div class="ply-selector">
+            <button class="ply-btn" data-ply="teaser.ply">Teaser</button>
+            <button class="ply-btn active" data-ply="0b55fab279dd46c49c6fc1a2182bf904.ply">模型1</button>
+            <button class="ply-btn" data-ply="1d57337aa0224addb86b35a744e79ea3.ply">模型2</button>
+            <button class="ply-btn" data-ply="2154c73695ce427087941ca58edcbe67.ply">模型3</button>
+            <button class="ply-btn" data-ply="3d325a6fefd545fb86977b8f01ce2fe7.ply">模型4</button>
+        </div>
+
+        <div class="splat-container">
+            <canvas id="splat-canvas"></canvas>
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">加载高斯泼溅模型...</div>
+                <div class="loading-progress" id="progress">0%</div>
+            </div>
+            <div class="error-message hidden" id="error"></div>
+        </div>
+        
+        <p class="tip">💡 上下滚动页面体验空间视差效果 | 陀螺仪控制更沉浸</p>
+
+        <div class="controls-panel">
+            <div class="controls-title">🎮 控制设置</div>
+            
+            <div class="control-row">
+                <span class="control-label">陀螺仪</span>
+                <div class="toggle-switch" id="gyro-toggle"></div>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">视差强度</span>
+                <input type="range" class="control-slider" id="parallax-intensity" min="0.1" max="2" step="0.1" value="1">
+                <span class="control-value" id="parallax-value">1.0</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">相机距离</span>
+                <input type="range" class="control-slider" id="camera-distance" min="1" max="10" step="0.5" value="3">
+                <span class="control-value" id="distance-value">3.0</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">自动旋转</span>
+                <div class="toggle-switch" id="auto-rotate"></div>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">滚动视差</span>
+                <div class="toggle-switch active" id="scroll-parallax"></div>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">滚动视差强度</span>
+                <input type="range" class="control-slider" id="scroll-intensity" min="0.5" max="3" step="0.1" value="1">
+                <span class="control-value" id="scroll-value">1.0</span>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="controls-title">📐 模型调整</div>
+            
+            <div class="control-row">
+                <span class="control-label">垂直位置</span>
+                <input type="range" class="control-slider" id="model-offset-y" min="-2" max="2" step="0.1" value="0">
+                <span class="control-value" id="offset-y-value">0.0</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">X轴旋转</span>
+                <input type="range" class="control-slider" id="model-rotation-x" min="0" max="360" step="5" value="180">
+                <span class="control-value" id="rotation-x-value">180°</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">Y轴旋转</span>
+                <input type="range" class="control-slider" id="model-rotation-y" min="0" max="360" step="5" value="0">
+                <span class="control-value" id="rotation-y-value">0°</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">Z轴旋转</span>
+                <input type="range" class="control-slider" id="model-rotation-z" min="0" max="360" step="5" value="0">
+                <span class="control-value" id="rotation-z-value">0°</span>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="control-row">
+                <span class="control-label"></span>
+                <button class="ply-btn" id="reset-camera">重置位置</button>
+                <button class="ply-btn" id="reset-model">重置旋转</button>
+            </div>
+        </div>
+        
+        <!-- 用于演示滚动视差的占位内容 -->
+        <div class="scroll-demo-section">
+            <h3>📜 滚动视差演示</h3>
+            <p>上下滚动页面，观察上方3D模型的视角变化。当模型在屏幕上方时，视角会向上倾斜；当模型在屏幕下方时，视角会向下倾斜。这模拟了透过窗户观看3D场景的效果。</p>
+            
+            <div class="demo-card">
+                <h4>🎯 Apple Vision Pro 风格视差</h4>
+                <p>这种效果灵感来自 Apple Vision Pro 的空间照片功能。照片会根据在视口中的位置产生微妙的3D视差，让平面内容产生深度感。</p>
+            </div>
+            
+            <div class="demo-card">
+                <h4>🔧 技术实现</h4>
+                <p>通过监听页面滚动事件，计算3D容器在视口中的相对位置（-1到1），然后将这个值映射到相机的俯仰角度，实现自然的视差效果。</p>
+            </div>
+            
+            <div class="demo-card">
+                <h4>📱 移动端优化</h4>
+                <p>在移动设备上，还可以结合陀螺仪实现更沉浸的体验。开启陀螺仪后，倾斜手机可以从不同角度观看3D场景。</p>
+            </div>
+            
+            <div class="demo-card">
+                <h4>⚡ 性能优化</h4>
+                <p>使用 passive 滚动监听器确保滚动流畅，通过平滑插值避免视角抖动，保证60fps的渲染性能。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-dot" id="gyro-status"></span>
+            <span>陀螺仪</span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot" id="render-status"></span>
+            <span>渲染</span>
+        </div>
+        <div class="status-item" id="fps-display">
+            <span>FPS: --</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as pc from 'playcanvas';
+
+        // 配置
+        const config = {
+            plyBasePath: '../output/',
+            currentPly: '0b55fab279dd46c49c6fc1a2182bf904.ply',  // 默认模型1
+            parallaxIntensity: 0.3, // 空间视差强度
+            cameraDistance: 0.0,  // 相机在正Z轴0处
+            autoRotate: false, // 自动旋转模型
+            gyroEnabled: true, // 陀螺仪控制开关
+            scrollParallax: true,  // 滚动视差开关
+            scrollParallaxIntensity: 0.6,  // 滚动视差强度
+            // 模型位置调整
+            modelOffsetY: 0,  // 模型垂直位置偏移
+            modelRotationX: 180,  // 模型X轴旋转（默认翻转）
+            modelRotationY: 0,  // 模型Y轴旋转
+            modelRotationZ: 0   // 模型Z轴旋转
+        };
+
+        // DOM 元素
+        const canvas = document.getElementById('splat-canvas');
+        const splatContainer = document.querySelector('.splat-container');
+        const loadingEl = document.getElementById('loading');
+        const progressEl = document.getElementById('progress');
+        const errorEl = document.getElementById('error');
+        const gyroStatus = document.getElementById('gyro-status');
+        const renderStatus = document.getElementById('render-status');
+        const fpsDisplay = document.getElementById('fps-display');
+
+        // PlayCanvas 应用和资源
+        let app = null;
+        let camera = null;
+        let splatEntity = null;
+        let currentAsset = null;  // 跟踪当前加载的资源
+        
+        // 模型控制 - 陀螺仪和滚动都控制模型而非相机
+        let modelPosition = { x: 0, y: 0, z: 0 };  // 当前模型位置
+        let targetModelPosition = { x: 0, y: 0, z: 0 };  // 目标模型位置
+        let modelRotation = { x: 180, y: 0, z: 0 };  // 当前模型旋转
+        let targetModelRotation = { x: 180, y: 0, z: 0 };  // 目标模型旋转
+        
+        let gyroData = { alpha: 0, beta: 0, gamma: 0 };
+        let initialGyro = null;
+        
+        let frameCount = 0;
+        let lastFpsTime = performance.now();
+
+        // 初始化 PlayCanvas
+        async function initPlayCanvas() {
+            try {
+                console.log('初始化 PlayCanvas...');
+                
+                // 创建图形设备
+                const gfxOptions = {
+                    deviceTypes: ['webgl2', 'webgl1'],
+                    antialias: false // 高斯泼溅不需要抗锯齿
+                };
+
+                const device = await pc.createGraphicsDevice(canvas, gfxOptions);
+                device.maxPixelRatio = Math.min(window.devicePixelRatio, 2);
+
+                console.log('图形设备创建成功:', device.webgl2 ? 'WebGL2' : 'WebGL1');
+
+                // 创建应用选项
+                const createOptions = new pc.AppOptions();
+                createOptions.graphicsDevice = device;
+                createOptions.mouse = new pc.Mouse(document.body);
+                createOptions.touch = new pc.TouchDevice(document.body);
+
+                // 添加组件系统
+                createOptions.componentSystems = [
+                    pc.RenderComponentSystem,
+                    pc.CameraComponentSystem,
+                    pc.LightComponentSystem,
+                    pc.GSplatComponentSystem
+                ];
+                
+                // 添加资源处理器
+                createOptions.resourceHandlers = [
+                    pc.TextureHandler,
+                    pc.ContainerHandler,
+                    pc.GSplatHandler
+                ];
+
+                // 创建应用
+                app = new pc.AppBase(canvas);
+                app.init(createOptions);
+
+                // 设置画布填充模式 - 使用KEEP_ASPECT保持宽高比
+                app.setCanvasFillMode(pc.FILLMODE_KEEP_ASPECT);
+                app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+                // 处理窗口大小变化
+                const resize = () => {
+                    app.resizeCanvas();
+                    // 确保相机参数不变
+                    if (camera && camera.camera) {
+                        camera.camera.horizontalFov = false;  // 使用垂直FOV
+                    }
+                };
+                window.addEventListener('resize', resize);
+
+                // 创建相机 - 固定在Z轴上,面向原点
+                camera = new pc.Entity('camera');
+                camera.addComponent('camera', {
+                    clearColor: new pc.Color(0.05, 0.05, 0.1),
+                    fov: 35,  // 减小垂直FOV,视野更窄更聚焦
+                    horizontalFov: false,  // 使用垂直FOV而非水平FOV
+                    nearClip: 0.1,
+                    farClip: 1000
+                });
+                // 相机位置: (0, 0, cameraDistance) 面向 (0, 0, 0)
+                camera.setLocalPosition(0, 0, config.cameraDistance);
+                camera.lookAt(0, 0, 0);
+                app.root.addChild(camera);
+
+                // 创建光源
+                const light = new pc.Entity('light');
+                light.addComponent('light', {
+                    type: 'directional',
+                    color: new pc.Color(1, 1, 1),
+                    intensity: 1
+                });
+                light.setLocalEulerAngles(45, 30, 0);
+                app.root.addChild(light);
+
+                // 启动应用
+                app.start();
+                
+                renderStatus.classList.remove('inactive');
+                console.log('PlayCanvas 应用启动成功');
+
+                // 更新循环
+                app.on('update', update);
+
+                // 加载初始模型
+                await loadPlyModel(config.currentPly);
+
+            } catch (error) {
+                console.error('PlayCanvas 初始化失败:', error);
+                showError('初始化失败: ' + error.message);
+            }
+        }
+
+        // 加载 PLY 模型
+        async function loadPlyModel(filename) {
+            showLoading();
+            console.log('加载模型:', filename);
+
+            try {
+                // 移除现有模型和资源
+                if (splatEntity) {
+                    console.log('移除旧模型实体...');
+                    // 移除 gsplat 组件
+                    if (splatEntity.gsplat) {
+                        splatEntity.removeComponent('gsplat');
+                    }
+                    // 从父节点移除
+                    if (splatEntity.parent) {
+                        splatEntity.parent.removeChild(splatEntity);
+                    }
+                    // 销毁实体
+                    splatEntity.destroy();
+                    splatEntity = null;
+                }
+                
+                // 卸载旧资源
+                if (currentAsset) {
+                    console.log('卸载旧资源...');
+                    app.assets.remove(currentAsset);
+                    currentAsset.unload();
+                    currentAsset = null;
+                }
+
+                const url = config.plyBasePath + filename;
+                console.log('模型URL:', url);
+
+                // 创建新资源
+                const asset = new pc.Asset(filename, 'gsplat', { url: url });
+                currentAsset = asset;
+
+                // 监听加载进度
+                asset.on('progress', (received, total) => {
+                    const progress = Math.round((received / total) * 100);
+                    progressEl.textContent = progress + '%';
+                });
+
+                // 等待加载完成
+                await new Promise((resolve, reject) => {
+                    asset.on('load', () => {
+                        console.log('模型加载完成');
+                        resolve();
+                    });
+                    
+                    asset.on('error', (err) => {
+                        console.error('模型加载错误:', err);
+                        reject(new Error(err));
+                    });
+
+                    app.assets.add(asset);
+                    app.assets.load(asset);
+                });
+
+                // 创建新的高斯泼溅实体
+                console.log('创建新模型实体...');
+                splatEntity = new pc.Entity('gsplat');
+                splatEntity.addComponent('gsplat', {
+                    asset: asset
+                });
+                
+                // 应用模型旋转和位置
+                updateModelTransform();
+                
+                app.root.addChild(splatEntity);
+                console.log('新模型已添加到场景');
+
+                // 重置相机位置
+                resetCameraPosition();
+                
+                hideLoading();
+                config.currentPly = filename;
+
+            } catch (error) {
+                console.error('加载模型失败:', error);
+                showError('加载模型失败: ' + error.message);
+            }
+        }
+
+        // 重置模型位置和旋转
+        function resetCameraPosition() {
+            modelPosition = { x: 0, y: 0, z: 0 };
+            targetModelPosition = { x: 0, y: 0, z: 0 };
+            modelRotation = { x: config.modelRotationX, y: config.modelRotationY, z: config.modelRotationZ };
+            targetModelRotation = { x: config.modelRotationX, y: config.modelRotationY, z: config.modelRotationZ };
+            initialGyro = null;
+        }
+        
+        // 更新模型变换
+        function updateModelTransform() {
+            if (splatEntity) {
+                splatEntity.setLocalPosition(
+                    modelPosition.x,
+                    modelPosition.y + config.modelOffsetY,
+                    modelPosition.z
+                );
+                splatEntity.setLocalEulerAngles(
+                    modelRotation.x,
+                    modelRotation.y,
+                    modelRotation.z
+                );
+            }
+        }
+
+        // 更新循环
+        function update(dt) {
+            // FPS 计算
+            frameCount++;
+            const now = performance.now();
+            if (now - lastFpsTime >= 1000) {
+                fpsDisplay.querySelector('span').textContent = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastFpsTime = now;
+            }
+
+            // 自动旋转模型
+            if (config.autoRotate) {
+                targetModelRotation.y += dt * 20;
+            }
+
+            // 平滑过渡 - 模型位置
+            const smoothFactor = 0.1;
+            modelPosition.x += (targetModelPosition.x - modelPosition.x) * smoothFactor;
+            // Y位置叠加滚动视差和陀螺仪偏移
+            const finalTargetY = targetModelPosition.y + scrollYOffset;
+            modelPosition.y += (finalTargetY - modelPosition.y) * smoothFactor;
+            modelPosition.z += (targetModelPosition.z - modelPosition.z) * smoothFactor;
+            
+            // 平滑过渡 - 模型旋转
+            modelRotation.x += (targetModelRotation.x - modelRotation.x) * smoothFactor;
+            modelRotation.y += (targetModelRotation.y - modelRotation.y) * smoothFactor;
+            modelRotation.z += (targetModelRotation.z - modelRotation.z) * smoothFactor;
+
+            // 更新模型变换 (相机保持固定)
+            updateModelTransform();
+        }
+        
+        // 滚动视差 - 核心功能:平移模型Y位置
+        let initialScrollOffset = 0;  // 初始滚动偏移,用于补偿
+        let scrollYOffset = 0;  // 滚动产生的Y偏移(独立变量)
+        
+        function initScrollParallax() {
+            // 计算元素在视口中的位置，返回 -1 到 1 的值
+            // -1 = 元素在视口顶部上方
+            // 0 = 元素在视口中心
+            // 1 = 元素在视口底部下方
+            function getElementViewportPosition(element) {
+                const rect = element.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                
+                // 元素中心点相对于视口的位置
+                const elementCenter = rect.top + rect.height / 2;
+                const viewportCenter = viewportHeight / 2;
+                
+                // 归一化到 -1 到 1
+                const normalizedPosition = (elementCenter - viewportCenter) / (viewportHeight / 2);
+                
+                return Math.max(-1, Math.min(1, normalizedPosition));
+            }
+            
+            // ease-out衰减曲线 - 基于视口位置(0-1范围)
+            function easeOutCubicPosition(value, threshold, max) {
+                const absValue = Math.abs(value);
+                if (absValue <= threshold) {
+                    // threshold内: 线性响应
+                    return value;
+                } else {
+                    // threshold-max: 快速衰减
+                    const sign = value >= 0 ? 1 : -1;
+                    const normalized = (absValue - threshold) / (max - threshold);
+                    const damped = threshold + (max - threshold) * (1 - Math.pow(1 - normalized, 3));
+                    return sign * Math.min(damped, max);
+                }
+            }
+            
+            // 更新滚动视差
+            function updateScrollParallax() {
+                if (!config.scrollParallax) {
+                    scrollYOffset = 0;
+                    return;
+                }
+                
+                const position = getElementViewportPosition(splatContainer);
+                
+                // 应用补偿:当position=0(中心)时,原始偏移=0
+                const rawOffset = position - initialScrollOffset;
+                
+                // 基于视口位置的衰减 (0.6开始衰减, 1.0完全限制)
+                // 更早开始衰减,更平滑的过渡
+                const dampenedOffset = easeOutCubicPosition(rawOffset, 0.3, 0.8);
+                
+                // 转换为Y偏移
+                const maxYOffset = 0.5 * config.scrollParallaxIntensity;
+                
+                // 滚动视差效果 (注意负号反转方向)
+                scrollYOffset = -dampenedOffset * maxYOffset;
+            }
+            
+            // 计算初始偏移量 - 当前iframe相对于视口的位置
+            initialScrollOffset = getElementViewportPosition(splatContainer);
+            console.log('初始滚动偏移:', initialScrollOffset.toFixed(2));
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', updateScrollParallax, { passive: true });
+            
+            // 初始化时计算一次
+            updateScrollParallax();
+            
+            console.log('滚动视差已启用 - 模型Y平移模式 (含初始补偿)');
+        }
+
+        // 鼠标控制 - 映射为陀螺仪风格的交互
+        function initMouseControls() {
+            let isDragging = false;
+            let lastX = 0, lastY = 0;
+
+            // ease-out衰减曲线 - 与陀螺仪相同
+            function easeOutCubic(value, threshold, max) {
+                const absValue = Math.abs(value);
+                if (absValue <= threshold) {
+                    return value;
+                } else {
+                    const sign = value >= 0 ? 1 : -1;
+                    const normalized = (absValue - threshold) / (max - threshold);
+                    const damped = threshold + (max - threshold) * (1 - Math.pow(1 - normalized, 3));
+                    return sign * Math.min(damped, max);
+                }
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastX = e.clientX;
+                lastY = e.clientY;
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) {
+                    // 悬停视差效果 - 映射为陀螺仪风格 (canvas内限制通过监听器自然实现)
+                    const rect = canvas.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    // 归一化到 -1 到 1
+                    const normalizedX = (e.clientX - centerX) / (rect.width / 2);
+                    const normalizedY = (e.clientY - centerY) / (rect.height / 2);
+                    
+                    // 映射为类似陀螺仪的角度值 (模拟±35度范围)
+                    const simulatedGamma = normalizedX * 35;  // 左右
+                    const simulatedBeta = normalizedY * 25;   // 上下
+                    
+                    // 应用与陀螺仪相同的衰减曲线
+                    const dampenedBeta = easeOutCubic(simulatedBeta, 15, 25) * 0.5;
+                    const dampenedGamma = easeOutCubic(simulatedGamma, 20, 35);
+                    
+                    // 使用相同的映射逻辑
+                    targetModelRotation.x = config.modelRotationX + dampenedBeta * config.parallaxIntensity;
+                    targetModelRotation.y = config.modelRotationY - dampenedGamma * config.parallaxIntensity;
+                    
+                    // 同样的位置偏移
+                    const positionIntensity = 0.008;
+                    targetModelPosition.x = -dampenedGamma * positionIntensity;
+                    targetModelPosition.y = dampenedBeta * positionIntensity * 0.5;
+                } else {
+                    const deltaX = e.clientX - lastX;
+                    const deltaY = e.clientY - lastY;
+                    
+                    // 拖拽旋转模型
+                    targetModelRotation.y += deltaX * 0.5;
+                    targetModelRotation.x += deltaY * 0.5;
+                    
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                }
+            });
+
+            // 滚轮缩放
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                config.cameraDistance += e.deltaY * 0.01;
+                config.cameraDistance = Math.max(1, Math.min(10, config.cameraDistance));
+                document.getElementById('camera-distance').value = config.cameraDistance;
+                document.getElementById('distance-value').textContent = config.cameraDistance.toFixed(1);
+            });
+        }
+
+        // 触摸控制
+        function initTouchControls() {
+            let lastTouch = null;
+
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && lastTouch) {
+                    const deltaX = e.touches[0].clientX - lastTouch.x;
+                    const deltaY = e.touches[0].clientY - lastTouch.y;
+                    
+                    // 触摸旋转模型
+                    targetModelRotation.y += deltaX * 0.5;
+                    targetModelRotation.x += deltaY * 0.5;
+                    
+                    lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+                e.preventDefault();
+            });
+
+            canvas.addEventListener('touchend', () => {
+                lastTouch = null;
+            });
+        }
+
+        // 陀螺仪状态
+        let gyroPermissionGranted = false;
+        let gyroListenerAdded = false;
+
+        // 陀螺仪控制 - 请求权限
+        async function requestGyroPermission() {
+            // 检查是否支持陀螺仪
+            if (!window.DeviceOrientationEvent) {
+                console.log('设备不支持陀螺仪');
+                gyroStatus.classList.add('inactive');
+                alert('您的设备不支持陀螺仪');
+                return false;
+            }
+
+            // iOS 13+ 需要请求权限
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    console.log('请求 iOS 陀螺仪权限...');
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    console.log('陀螺仪权限结果:', permission);
+                    if (permission !== 'granted') {
+                        console.log('陀螺仪权限被拒绝');
+                        gyroStatus.classList.add('inactive');
+                        alert('陀螺仪权限被拒绝，请在设置中允许');
+                        return false;
+                    }
+                    gyroPermissionGranted = true;
+                } catch (error) {
+                    console.error('请求陀螺仪权限失败:', error);
+                    gyroStatus.classList.add('inactive');
+                    alert('请求陀螺仪权限失败: ' + error.message);
+                    return false;
+                }
+            } else {
+                // Android 或旧版 iOS 不需要请求权限
+                gyroPermissionGranted = true;
+            }
+
+            // 添加陀螺仪事件监听
+            if (!gyroListenerAdded) {
+                window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+                gyroListenerAdded = true;
+                console.log('陀螺仪事件监听已添加');
+            }
+
+            gyroStatus.classList.remove('inactive');
+            console.log('陀螺仪初始化成功');
+            return true;
+        }
+
+        // 处理陀螺仪数据 - 旋转模型
+        function handleDeviceOrientation(e) {
+            if (!config.gyroEnabled) return;
+            
+            // 检查数据有效性
+            if (e.beta === null || e.gamma === null) {
+                console.log('陀螺仪数据无效');
+                return;
+            }
+
+            // 记录初始陀螺仪数据
+            if (!initialGyro) {
+                initialGyro = { alpha: e.alpha || 0, beta: e.beta, gamma: e.gamma };
+                console.log('记录初始陀螺仪位置:', initialGyro);
+                return;
+            }
+
+            // 计算相对变化
+            const deltaBeta = (e.beta - initialGyro.beta);
+            const deltaGamma = (e.gamma - initialGyro.gamma);
+            const deltaAlpha = e.alpha ? (e.alpha - initialGyro.alpha) : 0;
+            
+            // 应用ease-out衰减曲线 - 在30度附近快速衰减
+            // 使用 1 - (1 - x/max)^3 曲线,类似视频淡出效果
+            function easeOutCubic(value, threshold, max) {
+                const absValue = Math.abs(value);
+                if (absValue <= threshold) {
+                    // threshold内: 线性响应
+                    return value;
+                } else {
+                    // threshold-max: 快速衰减
+                    const sign = value >= 0 ? 1 : -1;
+                    const normalized = (absValue - threshold) / (max - threshold);
+                    const damped = threshold + (max - threshold) * (1 - Math.pow(1 - normalized, 3));
+                    return sign * Math.min(damped, max);
+                }
+            }
+            
+            // Beta(上下翻转): 角度大,需要降低灵敏度并更早衰减
+            // 15度开始衰减, 25度完全限制
+            const dampenedBeta = easeOutCubic(deltaBeta, 15, 25) * 0.5; // 降低50%灵敏度
+            
+            // Gamma(左右倾斜): 角度小,保持灵敏度但也要早衰减
+            // 20度开始衰减, 35度完全限制
+            const dampenedGamma = easeOutCubic(deltaGamma, 20, 35);
+
+            // 映射到模型旋转角度 - 使用衰减后的值
+            // beta (前后倾斜) -> 模型X轴旋转
+            // gamma (左右倾斜) -> 模型Y轴旋转
+            targetModelRotation.x = config.modelRotationX + dampenedBeta * config.parallaxIntensity;
+            targetModelRotation.y = config.modelRotationY - dampenedGamma * config.parallaxIntensity;
+            
+            // 同时调整模型位置,产生视差效果 - 也使用衰减
+            // gamma (左右倾斜) -> 模型X位置 (轻微左右移动)
+            // beta (前后倾斜) -> 模型Y位置 (轻微上下移动)
+            const positionIntensity = 0.008; // 保持之前调优的强度
+            targetModelPosition.x = -dampenedGamma * positionIntensity;
+            targetModelPosition.y = dampenedBeta * positionIntensity * 0.5; // beta的Y位移也降低50%,与旋转保持一致
+
+            // 更新状态显示
+            gyroStatus.classList.remove('inactive');
+        }
+
+        // UI 控制
+        function initUIControls() {
+            // PLY 选择器
+            document.querySelectorAll('.ply-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    document.querySelectorAll('.ply-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    await loadPlyModel(btn.dataset.ply);
+                });
+            });
+
+            // 陀螺仪开关 - 必须在用户点击事件中请求权限
+            const gyroToggle = document.getElementById('gyro-toggle');
+            gyroToggle.addEventListener('click', async () => {
+                if (!config.gyroEnabled) {
+                    // 开启陀螺仪
+                    const success = await requestGyroPermission();
+                    if (success) {
+                        config.gyroEnabled = true;
+                        gyroToggle.classList.add('active');
+                        initialGyro = null; // 重置初始位置
+                        console.log('陀螺仪已开启');
+                    }
+                } else {
+                    // 关闭陀螺仪
+                    config.gyroEnabled = false;
+                    gyroToggle.classList.remove('active');
+                    console.log('陀螺仪已关闭');
+                }
+            });
+
+            // 视差强度
+            const parallaxSlider = document.getElementById('parallax-intensity');
+            const parallaxValue = document.getElementById('parallax-value');
+            parallaxSlider.addEventListener('input', () => {
+                config.parallaxIntensity = parseFloat(parallaxSlider.value);
+                parallaxValue.textContent = config.parallaxIntensity.toFixed(1);
+            });
+
+            // 相机距离
+            const distanceSlider = document.getElementById('camera-distance');
+            const distanceValue = document.getElementById('distance-value');
+            distanceSlider.addEventListener('input', () => {
+                config.cameraDistance = parseFloat(distanceSlider.value);
+                distanceValue.textContent = config.cameraDistance.toFixed(1);
+            });
+
+            // 自动旋转
+            const autoRotate = document.getElementById('auto-rotate');
+            autoRotate.addEventListener('click', () => {
+                config.autoRotate = !config.autoRotate;
+                autoRotate.classList.toggle('active', config.autoRotate);
+            });
+            
+            // 滚动视差开关
+            const scrollParallax = document.getElementById('scroll-parallax');
+            scrollParallax.addEventListener('click', () => {
+                config.scrollParallax = !config.scrollParallax;
+                scrollParallax.classList.toggle('active', config.scrollParallax);
+                console.log('滚动视差:', config.scrollParallax ? '开启' : '关闭');
+            });
+            
+            // 滚动视差强度
+            const scrollIntensity = document.getElementById('scroll-intensity');
+            const scrollValue = document.getElementById('scroll-value');
+            scrollIntensity.addEventListener('input', () => {
+                config.scrollParallaxIntensity = parseFloat(scrollIntensity.value);
+                scrollValue.textContent = config.scrollParallaxIntensity.toFixed(1);
+            });
+            
+            // 模型垂直位置
+            const modelOffsetY = document.getElementById('model-offset-y');
+            const offsetYValue = document.getElementById('offset-y-value');
+            modelOffsetY.addEventListener('input', () => {
+                config.modelOffsetY = parseFloat(modelOffsetY.value);
+                offsetYValue.textContent = config.modelOffsetY.toFixed(1);
+                updateModelTransform();
+            });
+            
+            // 模型X轴旋转
+            const modelRotationX = document.getElementById('model-rotation-x');
+            const rotationXValue = document.getElementById('rotation-x-value');
+            modelRotationX.addEventListener('input', () => {
+                config.modelRotationX = parseFloat(modelRotationX.value);
+                rotationXValue.textContent = config.modelRotationX + '°';
+                updateModelTransform();
+            });
+            
+            // 模型Y轴旋转
+            const modelRotationY = document.getElementById('model-rotation-y');
+            const rotationYValue = document.getElementById('rotation-y-value');
+            modelRotationY.addEventListener('input', () => {
+                config.modelRotationY = parseFloat(modelRotationY.value);
+                rotationYValue.textContent = config.modelRotationY + '°';
+                updateModelTransform();
+            });
+            
+            // 模型Z轴旋转
+            const modelRotationZ = document.getElementById('model-rotation-z');
+            const rotationZValue = document.getElementById('rotation-z-value');
+            modelRotationZ.addEventListener('input', () => {
+                config.modelRotationZ = parseFloat(modelRotationZ.value);
+                rotationZValue.textContent = config.modelRotationZ + '°';
+                updateModelTransform();
+            });
+            
+            // 重置位置按钮(重置模型位置)
+            document.getElementById('reset-camera').addEventListener('click', () => {
+                targetModelPosition = { x: 0, y: 0, z: 0 };
+                modelPosition = { x: 0, y: 0, z: 0 };
+            });
+            
+            // 重置旋转按钮(重置模型旋转)
+            document.getElementById('reset-model').addEventListener('click', () => {
+                config.modelOffsetY = 0;
+                config.modelRotationX = 180;
+                config.modelRotationY = 0;
+                config.modelRotationZ = 0;
+                modelRotation = { x: 180, y: 0, z: 0 };
+                targetModelRotation = { x: 180, y: 0, z: 0 };
+                modelOffsetY.value = 0;
+                modelRotationX.value = 180;
+                modelRotationY.value = 0;
+                modelRotationZ.value = 0;
+                offsetYValue.textContent = '0.0';
+                rotationXValue.textContent = '180°';
+                rotationYValue.textContent = '0°';
+                rotationZValue.textContent = '0°';
+            });
+        }
+
+        // 显示/隐藏加载
+        function showLoading() {
+            loadingEl.classList.remove('hidden');
+            errorEl.classList.add('hidden');
+            progressEl.textContent = '0%';
+        }
+
+        function hideLoading() {
+            loadingEl.classList.add('hidden');
+        }
+
+        function showError(message) {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            errorEl.textContent = message;
+            renderStatus.classList.add('inactive');
+        }
+
+        // 启动
+        async function start() {
+            initMouseControls();
+            initTouchControls();
+            initUIControls();
+            initScrollParallax();  // 初始化滚动视差
+            await initPlayCanvas();
+        }
+
+        start();
+    </script>
+</body>
+</html>

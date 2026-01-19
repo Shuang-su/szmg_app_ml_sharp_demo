@@ -1,0 +1,450 @@
+/* ===========================
+   文章详情页样式
+   =========================== */
+
+/* 覆盖全局的 overflow: hidden */
+.article-page,
+.article-page html,
+html:has(.article-page),
+body.article-page {
+    overflow: visible !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh;
+}
+
+.article-page {
+    background: #ffffff;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 头部导航 */
+.article-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.back-btn,
+.share-btn {
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.back-btn:active,
+.share-btn:active {
+    background: rgba(0,0,0,0.05);
+}
+
+.article-header-title {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.article-header-actions {
+    display: flex;
+    gap: 4px;
+}
+
+/* 文章内容区 */
+.article-content {
+    padding: 72px 16px 80px;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.article-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.article-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.article-source {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Spatial图片区域 */
+.spatial-images-section {
+    margin: 20px -16px;
+}
+
+.spatial-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #f0f0f0;
+    overflow: hidden;
+    cursor: grab;
+    margin-bottom: 16px;
+}
+
+.spatial-image-wrapper:active {
+    cursor: grabbing;
+}
+
+.spatial-image-wrapper .spatial-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.08s ease-out;
+    will-change: transform;
+}
+
+/* 空间效果激活状态 */
+.spatial-image-wrapper.spatial-active {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.spatial-image-wrapper.spatial-active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.1);
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* 图片标签 */
+.spatial-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+}
+
+.spatial-tag svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* 深度指示器 */
+.depth-indicator {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.depth-bar {
+    width: 30px;
+    height: 3px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.depth-fill {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    transition: width 0.2s;
+    width: 50%;
+}
+
+/* 图片说明 */
+.image-caption {
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* 文章正文 */
+.article-body {
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text-primary);
+}
+
+.article-body p {
+    margin-bottom: 20px;
+    text-align: justify;
+}
+
+.article-body h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 32px 0 16px;
+}
+
+.article-body h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+}
+
+.article-body blockquote {
+    margin: 20px 0;
+    padding: 16px 20px;
+    background: #f8f8f8;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+/* 底部工具栏 */
+.article-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: white;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 12px;
+    border-top: 1px solid var(--border-color);
+    z-index: 1000;
+}
+
+.footer-input {
+    flex: 1;
+}
+
+.footer-input input {
+    width: 100%;
+    height: 36px;
+    background: #f5f5f5;
+    border: none;
+    border-radius: 18px;
+    padding: 0 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+}
+
+.footer-input input::placeholder {
+    color: var(--text-muted);
+}
+
+.footer-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.action-btn span {
+    font-size: 10px;
+}
+
+.action-btn:active {
+    color: var(--primary-color);
+}
+
+/* Spatial模式切换按钮 */
+.spatial-mode-toggle {
+    position: fixed;
+    bottom: 72px;
+    right: 16px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4);
+    z-index: 100;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.spatial-mode-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+}
+
+.spatial-mode-toggle:active {
+    transform: translateY(0);
+}
+
+.spatial-mode-toggle.active {
+    background: linear-gradient(135deg, #4caf50, #8bc34a);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+/* 陀螺仪提示 */
+.gyro-hint {
+    position: fixed;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    z-index: 100;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* 全屏查看模式 */
+.fullscreen-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: black;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fullscreen-viewer .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fullscreen-viewer .spatial-image-wrapper {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    aspect-ratio: auto;
+    margin: 0;
+}
+
+/* 响应式适配 */
+@media (min-width: 768px) {
+    .article-content {
+        padding: 80px 24px 100px;
+    }
+    
+    .article-title {
+        font-size: 28px;
+    }
+    
+    .spatial-images-section {
+        margin: 24px 0;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+    
+    .spatial-image-wrapper {
+        border-radius: var(--radius-lg);
+    }
+    
+    .article-body {
+        font-size: 18px;
+    }
+    
+    .gyro-hint {
+        display: none !important;
+    }
+}
+
+/* 动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.loading-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}

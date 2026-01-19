@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>空间视差体验 - Spatial News Demo</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "playcanvas": "https://esm.run/playcanvas@2.5.0"
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #e91e63;
+            --primary-light: #ff6090;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .header h1 {
+            font-size: 17px;
+            font-weight: 500;
+        }
+        
+        .back-btn {
+            position: absolute;
+            left: 16px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* 沉浸式英雄区域 */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 24px;
+            background: linear-gradient(180deg, #0a0a1a 0%, #000 100%);
+        }
+        
+        .hero h2 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+            max-width: 500px;
+            line-height: 1.6;
+        }
+        
+        .scroll-hint {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.4);
+            font-size: 13px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+        
+        /* 内容区块 */
+        .section {
+            padding: 80px 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .section-text {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .section-text h3 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .section-text p {
+            font-size: 17px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.7;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* 3D模型容器 */
+        .splat-section {
+            position: relative;
+            width: 100%;
+            margin: 40px 0;
+        }
+        
+        .splat-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/10;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 100%);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        
+        .splat-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .splat-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 12px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .splat-caption {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* 分隔文字区域 */
+        .divider-section {
+            padding: 120px 24px;
+            text-align: center;
+            background: linear-gradient(180deg, #000 0%, #0a0a1a 50%, #000 100%);
+        }
+        
+        .divider-section h3 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .divider-section p {
+            font-size: 16px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.8;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* 特性卡片 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 48px;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+        }
+        
+        .feature-card .icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+        
+        .feature-card h4 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        
+        .feature-card p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.5;
+        }
+        
+        /* 底部控制面板 */
+        .controls-section {
+            padding: 60px 24px 120px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .controls-panel {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .controls-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .control-slider {
+            width: 100px;
+            accent-color: var(--primary-color);
+        }
+        
+        .control-value {
+            font-size: 12px;
+            color: var(--primary-color);
+            min-width: 40px;
+            text-align: right;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: var(--primary-color);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+        
+        .reset-btn {
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-btn:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 40px 24px 100px;
+            color: rgba(255,255,255,0.3);
+            font-size: 13px;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .hero h2 {
+                font-size: 32px;
+            }
+            
+            .hero p {
+                font-size: 15px;
+            }
+            
+            .section-text h3 {
+                font-size: 24px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .divider-section h3 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="index.html" class="back-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </a>
+        <h1>空间视差体验</h1>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="hero">
+        <h2>沉浸式空间</h2>
+        <p>通过高斯泼溅技术，感受照片从平面跃入三维的神奇时刻。滚动页面，探索空间视差的魅力。</p>
+        <div class="scroll-hint">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+            <span>向下滚动</span>
+        </div>
+    </section>
+
+    <!-- 第一个模型 -->
+    <section class="section">
+        <div class="section-text">
+            <h3>捕捉瞬间的深度</h3>
+            <p>每一张照片都蕴含着空间信息。通过先进的3D重建技术，我们将这些隐藏的维度释放出来，创造出身临其境的观看体验。</p>
+        </div>
+        <div class="splat-section">
+            <div class="splat-container" data-model="0">
+                <canvas class="splat-canvas" id="canvas-0"></canvas>
+                <div class="splat-loading" id="loading-0">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">正在加载...</div>
+                </div>
+            </div>
+            <p class="splat-caption">滚动页面，观察视角的微妙变化</p>
+        </div>
+    </section>
+
+    <!-- 分隔区域 -->
+    <section class="divider-section">
+        <h3>透过窗户看世界</h3>
+        <p>就像透过一扇神奇的窗户，你可以从不同角度窥探另一个空间。这不仅仅是观看，而是一种全新的感知方式。</p>
+    </section>
+
+    <!-- 第二个模型 -->
+    <section class="section">
+        <div class="section-text">
+            <h3>记忆的新维度</h3>
+            <p>当照片拥有了深度，回忆也变得更加真实。每一次浏览，都是一次重回现场的旅程。</p>
+        </div>
+        <div class="splat-section">
+            <div class="splat-container" data-model="1">
+                <canvas class="splat-canvas" id="canvas-1"></canvas>
+                <div class="splat-loading" id="loading-1">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">正在加载...</div>
+                </div>
+            </div>
+            <p class="splat-caption">倾斜手机或移动鼠标，探索更多角度</p>
+        </div>
+    </section>
+
+    <!-- 特性介绍 -->
+    <section class="section">
+        <div class="section-text">
+            <h3>技术与艺术的融合</h3>
+            <p>高斯泼溅（Gaussian Splatting）是一种革命性的3D表示方法，它将场景表示为数百万个小高斯点，实现了前所未有的渲染质量和速度。</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon">🎯</div>
+                <h4>空间视差</h4>
+                <p>根据屏幕位置自动调整视角，创造窗口效果</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📱</div>
+                <h4>陀螺仪控制</h4>
+                <p>倾斜设备即可从不同角度观看场景</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">⚡</div>
+                <h4>实时渲染</h4>
+                <p>60fps流畅体验，无需等待加载</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🎨</div>
+                <h4>照片级质量</h4>
+                <p>保留原始照片的每一个细节</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第三个模型 -->
+    <section class="section">
+        <div class="section-text">
+            <h3>光影的诗篇</h3>
+            <p>光线在空间中流转，每一帧都是一首关于光与影的诗。感受那些被时间定格的美好瞬间。</p>
+        </div>
+        <div class="splat-section">
+            <div class="splat-container" data-model="2">
+                <canvas class="splat-canvas" id="canvas-2"></canvas>
+                <div class="splat-loading" id="loading-2">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">正在加载...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 分隔区域 -->
+    <section class="divider-section">
+        <h3>未来已来</h3>
+        <p>这只是开始。随着技术的进步，我们将能够以更加自然的方式记录和回顾生活中的每一个重要时刻。</p>
+    </section>
+
+    <!-- 第四个模型 -->
+    <section class="section">
+        <div class="section-text">
+            <h3>空间的回响</h3>
+            <p>在这里，平面与立体的界限变得模糊。你所看到的不仅是图像，更是一个可以探索的微型世界。</p>
+        </div>
+        <div class="splat-section">
+            <div class="splat-container" data-model="3">
+                <canvas class="splat-canvas" id="canvas-3"></canvas>
+                <div class="splat-loading" id="loading-3">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">正在加载...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 控制面板 -->
+    <section class="controls-section">
+        <div class="controls-panel">
+            <div class="controls-title">🎮 体验设置</div>
+            
+            <div class="control-row">
+                <span class="control-label">陀螺仪控制</span>
+                <div class="toggle-switch" id="gyro-toggle"></div>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">视差强度</span>
+                <input type="range" class="control-slider" id="parallax-intensity" min="0.2" max="3" step="0.1" value="1">
+                <span class="control-value" id="parallax-value">1.0</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">滚动视差强度</span>
+                <input type="range" class="control-slider" id="scroll-intensity" min="0.2" max="3" step="0.1" value="1">
+                <span class="control-value" id="scroll-value">1.0</span>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="controls-title">🎥 相机设置</div>
+            
+            <div class="control-row">
+                <span class="control-label">相机距离</span>
+                <input type="range" class="control-slider" id="camera-distance" min="1" max="10" step="0.5" value="3">
+                <span class="control-value" id="distance-value">3.0</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">相机俯仰</span>
+                <input type="range" class="control-slider" id="base-pitch" min="-90" max="90" step="1" value="0">
+                <span class="control-value" id="base-pitch-value">0°</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">相机偏航</span>
+                <input type="range" class="control-slider" id="base-yaw" min="-180" max="180" step="5" value="0">
+                <span class="control-value" id="base-yaw-value">0°</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">视野角度</span>
+                <input type="range" class="control-slider" id="camera-fov" min="30" max="120" step="5" value="60">
+                <span class="control-value" id="fov-value">60°</span>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="controls-title">📐 模型位置</div>
+            
+            <div class="control-row">
+                <span class="control-label">X轴位置</span>
+                <input type="range" class="control-slider" id="model-offset-x" min="-5" max="5" step="0.1" value="0">
+                <span class="control-value" id="offset-x-value">0.0</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">Y轴位置（上下）</span>
+                <input type="range" class="control-slider" id="model-offset-y" min="-5" max="5" step="0.1" value="0.3">
+                <span class="control-value" id="offset-y-value">0.3</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">Z轴位置</span>
+                <input type="range" class="control-slider" id="model-offset-z" min="-5" max="5" step="0.1" value="0">
+                <span class="control-value" id="offset-z-value">0.0</span>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="controls-title">🔄 模型旋转</div>
+            
+            <div class="control-row">
+                <span class="control-label">X轴旋转（俯仰）</span>
+                <input type="range" class="control-slider" id="model-rotation-x" min="0" max="360" step="5" value="180">
+                <span class="control-value" id="rotation-x-value">180°</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">Y轴旋转（水平）</span>
+                <input type="range" class="control-slider" id="model-rotation-y" min="0" max="360" step="5" value="0">
+                <span class="control-value" id="rotation-y-value">0°</span>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">Z轴旋转（倾斜）</span>
+                <input type="range" class="control-slider" id="model-rotation-z" min="0" max="360" step="5" value="0">
+                <span class="control-value" id="rotation-z-value">0°</span>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="controls-title">🔧 快捷操作</div>
+            
+            <div class="control-row" style="justify-content: center; gap: 12px;">
+                <button class="reset-btn" id="reset-camera">重置相机</button>
+                <button class="reset-btn" id="reset-model">重置模型</button>
+                <button class="reset-btn" id="reset-all">全部重置</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <p>Spatial Browsing Demo · Powered by PlayCanvas & Gaussian Splatting</p>
+    </footer>
+
+    <script type="module">
+        import * as pc from 'playcanvas';
+
+        // 模型列表（去掉teaser和模型5）
+        const models = [
+            { file: '0b55fab279dd46c49c6fc1a2182bf904.ply', name: '模型1' },
+            { file: '1d57337aa0224addb86b35a744e79ea3.ply', name: '模型2' },
+            { file: '2154c73695ce427087941ca58edcbe67.ply', name: '模型3' },
+            { file: '3d325a6fefd545fb86977b8f01ce2fe7.ply', name: '模型4' }
+        ];
+
+        // 全局配置
+        const config = {
+            plyBasePath: '../output/',
+            parallaxIntensity: 1.0,
+            cameraDistance: 3.0,
+            gyroEnabled: false,
+            // 模型位置
+            modelOffsetX: 0,
+            modelOffsetY: 0.3,  // 默认稍微往上
+            modelOffsetZ: 0,
+            // 模型旋转
+            modelRotationX: 180,  // 高斯泼溅默认需要翻转
+            modelRotationY: 0,
+            modelRotationZ: 0,
+            // 相机设置
+            basePitch: 0,
+            baseYaw: 0,
+            cameraFov: 60,
+            // 滚动视差
+            scrollParallaxIntensity: 1.0
+        };
+
+        // 存储每个模型的实例
+        const instances = [];
+
+        // 陀螺仪相关
+        let gyroPermissionGranted = false;
+        let gyroListenerAdded = false;
+        let initialGyro = null;
+        let gyroAngles = { pitch: 0, yaw: 0 };
+
+        // 创建单个模型实例
+        async function createInstance(index) {
+            const canvas = document.getElementById(`canvas-${index}`);
+            const loadingEl = document.getElementById(`loading-${index}`);
+            const container = canvas.closest('.splat-container');
+            
+            try {
+                // 创建图形设备
+                const device = await pc.createGraphicsDevice(canvas, {
+                    deviceTypes: ['webgl2', 'webgl1'],
+                    antialias: false
+                });
+                device.maxPixelRatio = Math.min(window.devicePixelRatio, 2);
+
+                // 创建应用
+                const createOptions = new pc.AppOptions();
+                createOptions.graphicsDevice = device;
+                createOptions.mouse = new pc.Mouse(canvas);
+                createOptions.touch = new pc.TouchDevice(canvas);
+                createOptions.componentSystems = [
+                    pc.RenderComponentSystem,
+                    pc.CameraComponentSystem,
+                    pc.LightComponentSystem,
+                    pc.GSplatComponentSystem
+                ];
+                createOptions.resourceHandlers = [
+                    pc.TextureHandler,
+                    pc.ContainerHandler,
+                    pc.GSplatHandler
+                ];
+
+                const app = new pc.AppBase(canvas);
+                app.init(createOptions);
+                app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+                app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+                // 创建相机
+                const camera = new pc.Entity('camera');
+                camera.addComponent('camera', {
+                    clearColor: new pc.Color(0.04, 0.04, 0.06),
+                    fov: 60,
+                    nearClip: 0.1,
+                    farClip: 1000
+                });
+                camera.setLocalPosition(0, 0, config.cameraDistance);
+                app.root.addChild(camera);
+
+                app.start();
+
+                // 加载模型
+                const url = config.plyBasePath + models[index].file;
+                const asset = new pc.Asset(models[index].file, 'gsplat', { url });
+
+                await new Promise((resolve, reject) => {
+                    asset.on('load', resolve);
+                    asset.on('error', reject);
+                    app.assets.add(asset);
+                    app.assets.load(asset);
+                });
+
+                // 创建位置容器（用于位置控制，在世界坐标系下）
+                const pivot = new pc.Entity('pivot');
+                pivot.setLocalPosition(config.modelOffsetX, config.modelOffsetY, config.modelOffsetZ);
+                app.root.addChild(pivot);
+                
+                // 创建模型实体（用于旋转控制，在本地坐标系下）
+                const splatEntity = new pc.Entity('gsplat');
+                splatEntity.addComponent('gsplat', { asset });
+                splatEntity.setLocalEulerAngles(config.modelRotationX, config.modelRotationY, config.modelRotationZ);
+                pivot.addChild(splatEntity);
+
+                loadingEl.classList.add('hidden');
+
+                // 存储实例
+                const instance = {
+                    app,
+                    camera,
+                    pivot,  // 位置容器
+                    splatEntity,  // 旋转实体
+                    container,
+                    orbitAngles: { pitch: 0, yaw: 0 },
+                    targetAngles: { pitch: 0, yaw: 0 },
+                    scrollOffset: { pitch: 0 }
+                };
+                instances[index] = instance;
+
+                // 更新循环
+                app.on('update', (dt) => updateInstance(instance, dt));
+
+                // 鼠标悬停视差
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!config.gyroEnabled) {
+                        const rect = canvas.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width - 0.5;
+                        const y = (e.clientY - rect.top) / rect.height - 0.5;
+                        instance.targetAngles.yaw = x * 25 * config.parallaxIntensity;
+                        instance.targetAngles.pitch = -y * 15 * config.parallaxIntensity;
+                    }
+                });
+
+                canvas.addEventListener('mouseleave', () => {
+                    if (!config.gyroEnabled) {
+                        instance.targetAngles.yaw = 0;
+                        instance.targetAngles.pitch = 0;
+                    }
+                });
+
+            } catch (error) {
+                console.error(`模型 ${index} 加载失败:`, error);
+                loadingEl.innerHTML = `<div style="color:#ff5252">加载失败</div>`;
+            }
+        }
+
+        // 更新单个实例
+        function updateInstance(instance, dt) {
+            if (!instance) return;
+
+            // 合并所有角度偏移
+            let finalPitch = instance.targetAngles.pitch + instance.scrollOffset.pitch + config.basePitch;
+            let finalYaw = instance.targetAngles.yaw + config.baseYaw;
+
+            // 如果启用陀螺仪，使用陀螺仪数据
+            if (config.gyroEnabled) {
+                finalPitch = gyroAngles.pitch + instance.scrollOffset.pitch + config.basePitch;
+                finalYaw = gyroAngles.yaw + config.baseYaw;
+            }
+
+            // 平滑过渡
+            instance.orbitAngles.pitch += (finalPitch - instance.orbitAngles.pitch) * 0.1;
+            instance.orbitAngles.yaw += (finalYaw - instance.orbitAngles.yaw) * 0.1;
+
+            // 更新相机位置
+            const pitchRad = instance.orbitAngles.pitch * Math.PI / 180;
+            const yawRad = instance.orbitAngles.yaw * Math.PI / 180;
+            const dist = config.cameraDistance;
+
+            const x = dist * Math.sin(yawRad) * Math.cos(pitchRad);
+            const y = dist * Math.sin(pitchRad);
+            const z = dist * Math.cos(yawRad) * Math.cos(pitchRad);
+
+            instance.camera.setLocalPosition(x, y, z);
+            instance.camera.lookAt(config.modelOffsetX, config.modelOffsetY, config.modelOffsetZ);
+            
+            // 更新相机 FOV
+            if (instance.camera.camera.fov !== config.cameraFov) {
+                instance.camera.camera.fov = config.cameraFov;
+            }
+        }
+
+        // 滚动视差
+        function updateScrollParallax() {
+            instances.forEach((instance, index) => {
+                if (!instance) return;
+
+                const rect = instance.container.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const elementCenter = rect.top + rect.height / 2;
+                const viewportCenter = viewportHeight / 2;
+                const position = (elementCenter - viewportCenter) / (viewportHeight / 2);
+                const normalizedPos = Math.max(-1, Math.min(1, position));
+
+                instance.scrollOffset.pitch = normalizedPos * 20 * config.scrollParallaxIntensity;
+            });
+        }
+
+        // 陀螺仪
+        async function requestGyroPermission() {
+            if (!window.DeviceOrientationEvent) {
+                alert('您的设备不支持陀螺仪');
+                return false;
+            }
+
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission !== 'granted') {
+                        alert('陀螺仪权限被拒绝');
+                        return false;
+                    }
+                    gyroPermissionGranted = true;
+                } catch (error) {
+                    alert('请求陀螺仪权限失败');
+                    return false;
+                }
+            } else {
+                gyroPermissionGranted = true;
+            }
+
+            if (!gyroListenerAdded) {
+                window.addEventListener('deviceorientation', handleGyro, true);
+                gyroListenerAdded = true;
+            }
+            return true;
+        }
+
+        function handleGyro(e) {
+            if (!config.gyroEnabled || e.beta === null) return;
+
+            if (!initialGyro) {
+                initialGyro = { beta: e.beta, gamma: e.gamma };
+            }
+
+            const deltaBeta = (e.beta - initialGyro.beta) * config.parallaxIntensity;
+            const deltaGamma = (e.gamma - initialGyro.gamma) * config.parallaxIntensity;
+
+            gyroAngles.pitch = Math.max(-45, Math.min(45, deltaBeta * 0.5));
+            gyroAngles.yaw = deltaGamma * 0.8;
+        }
+
+        // UI控制
+        function initControls() {
+            // 更新所有模型的位置（通过pivot）
+            function updateAllPositions() {
+                instances.forEach(inst => {
+                    if (inst?.pivot) {
+                        inst.pivot.setLocalPosition(config.modelOffsetX, config.modelOffsetY, config.modelOffsetZ);
+                    }
+                });
+            }
+            
+            // 更新所有模型的旋转（通过splatEntity）
+            function updateAllRotations() {
+                instances.forEach(inst => {
+                    if (inst?.splatEntity) {
+                        inst.splatEntity.setLocalEulerAngles(config.modelRotationX, config.modelRotationY, config.modelRotationZ);
+                    }
+                });
+            }
+            
+            // 陀螺仪开关
+            const gyroToggle = document.getElementById('gyro-toggle');
+            gyroToggle.addEventListener('click', async () => {
+                if (!config.gyroEnabled) {
+                    const success = await requestGyroPermission();
+                    if (success) {
+                        config.gyroEnabled = true;
+                        gyroToggle.classList.add('active');
+                        initialGyro = null;
+                    }
+                } else {
+                    config.gyroEnabled = false;
+                    gyroToggle.classList.remove('active');
+                }
+            });
+
+            // 视差强度
+            const parallaxSlider = document.getElementById('parallax-intensity');
+            const parallaxValue = document.getElementById('parallax-value');
+            parallaxSlider.addEventListener('input', () => {
+                config.parallaxIntensity = parseFloat(parallaxSlider.value);
+                parallaxValue.textContent = config.parallaxIntensity.toFixed(1);
+            });
+            
+            // 滚动视差强度
+            const scrollSlider = document.getElementById('scroll-intensity');
+            const scrollValue = document.getElementById('scroll-value');
+            scrollSlider.addEventListener('input', () => {
+                config.scrollParallaxIntensity = parseFloat(scrollSlider.value);
+                scrollValue.textContent = config.scrollParallaxIntensity.toFixed(1);
+            });
+
+            // 相机距离
+            const distanceSlider = document.getElementById('camera-distance');
+            const distanceValue = document.getElementById('distance-value');
+            distanceSlider.addEventListener('input', () => {
+                config.cameraDistance = parseFloat(distanceSlider.value);
+                distanceValue.textContent = config.cameraDistance.toFixed(1);
+            });
+            
+            // 相机俯仰
+            const pitchSlider = document.getElementById('base-pitch');
+            const pitchValue = document.getElementById('base-pitch-value');
+            pitchSlider.addEventListener('input', () => {
+                config.basePitch = parseFloat(pitchSlider.value);
+                pitchValue.textContent = config.basePitch + '°';
+            });
+            
+            // 相机偏航
+            const yawSlider = document.getElementById('base-yaw');
+            const yawValue = document.getElementById('base-yaw-value');
+            yawSlider.addEventListener('input', () => {
+                config.baseYaw = parseFloat(yawSlider.value);
+                yawValue.textContent = config.baseYaw + '°';
+            });
+            
+            // 视野角度FOV
+            const fovSlider = document.getElementById('camera-fov');
+            const fovValue = document.getElementById('fov-value');
+            fovSlider.addEventListener('input', () => {
+                config.cameraFov = parseFloat(fovSlider.value);
+                fovValue.textContent = config.cameraFov + '°';
+            });
+
+            // 模型X轴位置
+            const offsetXSlider = document.getElementById('model-offset-x');
+            const offsetXValue = document.getElementById('offset-x-value');
+            offsetXSlider.addEventListener('input', () => {
+                config.modelOffsetX = parseFloat(offsetXSlider.value);
+                offsetXValue.textContent = config.modelOffsetX.toFixed(1);
+                updateAllPositions();
+            });
+
+            // 模型Y轴位置
+            const offsetYSlider = document.getElementById('model-offset-y');
+            const offsetYValue = document.getElementById('offset-y-value');
+            offsetYSlider.addEventListener('input', () => {
+                config.modelOffsetY = parseFloat(offsetYSlider.value);
+                offsetYValue.textContent = config.modelOffsetY.toFixed(1);
+                updateAllPositions();
+            });
+            
+            // 模型Z轴位置
+            const offsetZSlider = document.getElementById('model-offset-z');
+            const offsetZValue = document.getElementById('offset-z-value');
+            offsetZSlider.addEventListener('input', () => {
+                config.modelOffsetZ = parseFloat(offsetZSlider.value);
+                offsetZValue.textContent = config.modelOffsetZ.toFixed(1);
+                updateAllPositions();
+            });
+            
+            // 模型X轴旋转
+            const rotXSlider = document.getElementById('model-rotation-x');
+            const rotXValue = document.getElementById('rotation-x-value');
+            rotXSlider.addEventListener('input', () => {
+                config.modelRotationX = parseFloat(rotXSlider.value);
+                rotXValue.textContent = config.modelRotationX + '°';
+                updateAllRotations();
+            });
+            
+            // 模型Y轴旋转
+            const rotYSlider = document.getElementById('model-rotation-y');
+            const rotYValue = document.getElementById('rotation-y-value');
+            rotYSlider.addEventListener('input', () => {
+                config.modelRotationY = parseFloat(rotYSlider.value);
+                rotYValue.textContent = config.modelRotationY + '°';
+                updateAllRotations();
+            });
+            
+            // 模型Z轴旋转
+            const rotZSlider = document.getElementById('model-rotation-z');
+            const rotZValue = document.getElementById('rotation-z-value');
+            rotZSlider.addEventListener('input', () => {
+                config.modelRotationZ = parseFloat(rotZSlider.value);
+                rotZValue.textContent = config.modelRotationZ + '°';
+                updateAllRotations();
+            });
+            
+            // 重置相机按钮
+            document.getElementById('reset-camera').addEventListener('click', () => {
+                config.cameraDistance = 3.0;
+                config.basePitch = 0;
+                config.baseYaw = 0;
+                config.cameraFov = 60;
+                distanceSlider.value = 3.0;
+                pitchSlider.value = 0;
+                yawSlider.value = 0;
+                fovSlider.value = 60;
+                distanceValue.textContent = '3.0';
+                pitchValue.textContent = '0°';
+                yawValue.textContent = '0°';
+                fovValue.textContent = '60°';
+            });
+            
+            // 重置模型按钮
+            document.getElementById('reset-model').addEventListener('click', () => {
+                config.modelOffsetX = 0;
+                config.modelOffsetY = 0.3;
+                config.modelOffsetZ = 0;
+                config.modelRotationX = 180;
+                config.modelRotationY = 0;
+                config.modelRotationZ = 0;
+                offsetXSlider.value = 0;
+                offsetYSlider.value = 0.3;
+                offsetZSlider.value = 0;
+                rotXSlider.value = 180;
+                rotYSlider.value = 0;
+                rotZSlider.value = 0;
+                offsetXValue.textContent = '0.0';
+                offsetYValue.textContent = '0.3';
+                offsetZValue.textContent = '0.0';
+                rotXValue.textContent = '180°';
+                rotYValue.textContent = '0°';
+                rotZValue.textContent = '0°';
+                updateAllPositions();
+                updateAllRotations();
+            });
+            
+            // 全部重置按钮
+            document.getElementById('reset-all').addEventListener('click', () => {
+                document.getElementById('reset-camera').click();
+                document.getElementById('reset-model').click();
+                config.parallaxIntensity = 1.0;
+                config.scrollParallaxIntensity = 1.0;
+                parallaxSlider.value = 1.0;
+                scrollSlider.value = 1.0;
+                parallaxValue.textContent = '1.0';
+                scrollValue.textContent = '1.0';
+            });
+        }
+
+        // 窗口大小变化
+        function handleResize() {
+            instances.forEach(inst => {
+                if (inst?.app) {
+                    inst.app.resizeCanvas();
+                }
+            });
+        }
+
+        // 启动
+        async function start() {
+            initControls();
+            window.addEventListener('scroll', updateScrollParallax, { passive: true });
+            window.addEventListener('resize', handleResize);
+
+            // 依次创建模型实例
+            for (let i = 0; i < models.length; i++) {
+                await createInstance(i);
+            }
+
+            // 初始滚动视差计算
+            updateScrollParallax();
+        }
+
+        start();
+    </script>
+</body>
+</html>

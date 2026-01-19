@@ -1,0 +1,350 @@
+/* ===========================
+   Spatial 视差效果样式
+   =========================== */
+
+/* 视差图片容器 */
+.spatial-image-container {
+    position: relative;
+    overflow: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+/* 深度图层 */
+.spatial-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.spatial-layer-bg {
+    z-index: 1;
+    transform: translateZ(-50px) scale(1.1);
+}
+
+.spatial-layer-mid {
+    z-index: 2;
+    transform: translateZ(0px);
+}
+
+.spatial-layer-fg {
+    z-index: 3;
+    transform: translateZ(50px) scale(0.95);
+}
+
+/* 主图片样式 */
+.spatial-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+}
+
+/* 滚动视差效果 */
+.news-card[data-scroll-parallax] .news-card-image-wrapper {
+    transform-style: preserve-3d;
+    perspective: 500px;
+}
+
+.news-card[data-scroll-parallax] .news-card-image {
+    transition: transform 0.15s ease-out;
+}
+
+/* 陀螺仪/鼠标视差效果 */
+.spatial-active .spatial-image {
+    transition: transform 0.08s ease-out;
+}
+
+/* 深度遮罩效果 - 模拟景深 */
+.depth-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.spatial-active .depth-mask {
+    opacity: 1;
+}
+
+/* 边缘模糊效果 */
+.edge-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.1);
+    z-index: 5;
+}
+
+/* 高光反射效果 */
+.specular-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        ellipse at var(--highlight-x, 50%) var(--highlight-y, 30%),
+        rgba(255,255,255,0.15) 0%,
+        transparent 50%
+    );
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.spatial-active .specular-highlight {
+    opacity: 1;
+}
+
+/* 文章详情页中的Spatial图片 */
+.article-spatial-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin: 16px 0;
+    cursor: grab;
+}
+
+.article-spatial-image:active {
+    cursor: grabbing;
+}
+
+.article-spatial-image .spatial-image {
+    transform-origin: center center;
+}
+
+/* 全屏Spatial模式 */
+.spatial-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: black;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spatial-fullscreen .spatial-image-container {
+    width: 100%;
+    height: 100%;
+}
+
+.spatial-fullscreen .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10001;
+    backdrop-filter: blur(10px);
+}
+
+/* Gaussian Splat渲染容器 */
+.splat-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.splat-container canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* 加载中状态 */
+.spatial-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    z-index: 20;
+}
+
+.spatial-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spatial-loading-text {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* 视差强度指示器 */
+.parallax-intensity {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 15;
+}
+
+.parallax-intensity-bar {
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.parallax-intensity-fill {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    transition: width 0.2s;
+}
+
+/* 深度可视化（调试用） */
+.depth-debug {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.depth-debug.visible {
+    opacity: 0.5;
+}
+
+/* 触摸反馈 */
+.spatial-touch-feedback {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 30;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.3s ease-out;
+}
+
+.spatial-touch-feedback.active {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* 动画过渡效果 */
+.spatial-transition-enter {
+    animation: spatialEnter 0.5s ease-out;
+}
+
+@keyframes spatialEnter {
+    from {
+        transform: scale(1.1) translateZ(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateZ(0);
+        opacity: 1;
+    }
+}
+
+/* 陀螺仪提示 */
+.gyro-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    z-index: 50;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.gyro-hint-icon {
+    animation: tilt 2s ease-in-out infinite;
+}
+
+@keyframes tilt {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* 媒体查询 - 桌面端 */
+@media (min-width: 768px) {
+    .gyro-hint {
+        display: none;
+    }
+    
+    /* 桌面端显示鼠标提示 */
+    .mouse-hint {
+        display: flex;
+    }
+}
+
+@media (max-width: 767px) {
+    .mouse-hint {
+        display: none;
+    }
+}
