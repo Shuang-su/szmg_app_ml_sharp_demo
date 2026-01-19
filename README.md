@@ -2,7 +2,6 @@
 
 > 🌟 新闻空间照片 Demo - 基于 Apple ml-sharp 和 3D 高斯泼溅技术的沉浸式新闻阅读体验
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/your-badge-id/deploy-status)](https://szmg-app-ml-sharp-demo.netlify.app)
 
 ## 🎯 项目简介
 
