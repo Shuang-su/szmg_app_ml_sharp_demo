@@ -1,14 +1,43 @@
 <!--
   gsplat-viewer2.html - 3D 高斯泼溅独立查看器
   
-  功能说明：
+  ═══════════════════════════════════════════════════════════════
+  📖 功能说明
+  ═══════════════════════════════════════════════════════════════
   - 独立的 3DGS (3D Gaussian Splatting) 模型预览页面
+  - 支持本地 PLY 文件上传，可预览任意 ml-sharp 生成的模型
   - 支持陀螺仪控制（移动端）和鼠标/触摸拖拽控制
-  - 可选择不同的 PLY 模型文件进行查看
+  - 可从预设列表选择模型，或上传自定义文件
   - 作为 article.html 中嵌入式 3DGS 渲染的参考实现
   
-  技术栈：PlayCanvas 2.5.0 引擎
-  入口：首页 "3D视差" 标签页
+  ═══════════════════════════════════════════════════════════════
+  🔬 视差原理 (Parallax Principle)
+  ═══════════════════════════════════════════════════════════════
+  本项目利用 Apple ml-sharp 生成的 3DGS 模型的特殊属性：
+  
+  1. 相机固定原理
+     - 相机始终固定在 (0, 0, 0) 位置，面向 Z 轴负方向
+     - 不移动相机，而是移动/旋转 3D 模型本身
+     - 通过「逆向运动」让用户产生相机移动的错觉
+  
+  2. 陀螺仪映射
+     - Beta (前后倾斜) → 模型 X 轴旋转 + Y 位置偏移
+     - Gamma (左右倾斜) → 模型 Y 轴旋转 + X 位置偏移
+     - 使用 ease-out 曲线限制极端角度，防止模型变形
+  
+  3. 滚动视差
+     - 根据元素在视口中的垂直位置，调整模型 Y 轴位置
+     - 模拟「透过窗户观看 3D 场景」的透视效果
+  
+  4. 为什么这样做？
+     - ml-sharp 生成的模型以场景中心为原点
+     - 固定相机确保 FOV 和透视关系恒定
+     - 移动模型比移动相机更稳定，避免裁剪和失真
+     - 与 Apple Vision Pro 的空间照片原理一致
+  
+  ═══════════════════════════════════════════════════════════════
+  技术栈：PlayCanvas 2.5.0 引擎 | 入口：首页 "3D视差" 标签页
+  ═══════════════════════════════════════════════════════════════
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -172,6 +201,42 @@
         .ply-btn:hover, .ply-btn.active {
             background: var(--primary-color);
             border-color: var(--primary-color);
+        }
+        
+        .upload-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .upload-btn:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: scale(1.05);
+        }
+        
+        .upload-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        #file-input {
+            display: none;
+        }
+        
+        .file-name {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+            text-align: center;
+            word-break: break-all;
         }
         
         .controls-panel {
@@ -346,7 +411,9 @@
     <div class="container">
         <div class="intro">
             <h2>Gaussian Splatting Spatial Parallax</h2>
-            <p>使用PlayCanvas引擎加载3D高斯泼溅模型<br>支持陀螺仪和鼠标控制视角，体验空间视差效果</p>
+            <p>使用 PlayCanvas 引擎加载 ml-sharp 生成的 3DGS 模型<br>
+            <strong>原理：</strong>相机固定在原点，通过移动/旋转模型产生视差<br>
+            支持陀螺仪、触摸、鼠标控制，体验 Apple Vision Pro 风格的空间效果</p>
         </div>
 
         <div class="ply-selector">
@@ -355,7 +422,17 @@
             <button class="ply-btn" data-ply="1d57337aa0224addb86b35a744e79ea3.ply">模型2</button>
             <button class="ply-btn" data-ply="2154c73695ce427087941ca58edcbe67.ply">模型3</button>
             <button class="ply-btn" data-ply="3d325a6fefd545fb86977b8f01ce2fe7.ply">模型4</button>
+            <label class="upload-btn" for="file-input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                上传 PLY
+            </label>
+            <input type="file" id="file-input" accept=".ply">
         </div>
+        <div class="file-name" id="file-name"></div>
 
         <div class="splat-container">
             <canvas id="splat-canvas"></canvas>
@@ -709,6 +786,101 @@
             } catch (error) {
                 console.error('加载模型失败:', error);
                 showError('加载模型失败: ' + error.message);
+            }
+        }
+        
+        // 从本地文件加载 PLY 模型
+        async function loadPlyFromFile(file) {
+            showLoading();
+            console.log('从本地加载模型:', file.name);
+            
+            // 显示文件名
+            document.getElementById('file-name').textContent = '已加载: ' + file.name;
+
+            try {
+                // 移除现有模型和资源
+                if (splatEntity) {
+                    console.log('移除旧模型实体...');
+                    if (splatEntity.gsplat) {
+                        splatEntity.removeComponent('gsplat');
+                    }
+                    if (splatEntity.parent) {
+                        splatEntity.parent.removeChild(splatEntity);
+                    }
+                    splatEntity.destroy();
+                    splatEntity = null;
+                }
+                
+                if (currentAsset) {
+                    console.log('卸载旧资源...');
+                    app.assets.remove(currentAsset);
+                    currentAsset.unload();
+                    currentAsset = null;
+                }
+
+                // 读取文件为 ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+                console.log('文件大小:', (arrayBuffer.byteLength / 1024 / 1024).toFixed(2), 'MB');
+                
+                // 创建 Blob URL
+                const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // 创建新资源
+                const asset = new pc.Asset(file.name, 'gsplat', { url: blobUrl });
+                currentAsset = asset;
+
+                // 监听加载进度
+                asset.on('progress', (received, total) => {
+                    const progress = Math.round((received / total) * 100);
+                    progressEl.textContent = progress + '%';
+                });
+
+                // 等待加载完成
+                await new Promise((resolve, reject) => {
+                    asset.on('load', () => {
+                        console.log('本地模型加载完成');
+                        // 释放 Blob URL
+                        URL.revokeObjectURL(blobUrl);
+                        resolve();
+                    });
+                    
+                    asset.on('error', (err) => {
+                        console.error('本地模型加载错误:', err);
+                        URL.revokeObjectURL(blobUrl);
+                        reject(new Error(err));
+                    });
+
+                    app.assets.add(asset);
+                    app.assets.load(asset);
+                });
+
+                // 创建新的高斯泼溅实体
+                console.log('创建新模型实体...');
+                splatEntity = new pc.Entity('gsplat');
+                splatEntity.addComponent('gsplat', {
+                    asset: asset
+                });
+                
+                // 应用模型旋转和位置
+                updateModelTransform();
+                
+                app.root.addChild(splatEntity);
+                console.log('本地模型已添加到场景');
+
+                // 重置位置
+                resetCameraPosition();
+                
+                // 取消预设按钮的 active 状态
+                document.querySelectorAll('.ply-btn').forEach(b => b.classList.remove('active'));
+                
+                hideLoading();
+                config.currentPly = file.name;
+
+            } catch (error) {
+                console.error('加载本地模型失败:', error);
+                showError('加载本地模型失败: ' + error.message);
+                document.getElementById('file-name').textContent = '';
             }
         }
 
@@ -1075,8 +1247,24 @@
                 btn.addEventListener('click', async () => {
                     document.querySelectorAll('.ply-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
+                    document.getElementById('file-name').textContent = '';  // 清除上传文件名
                     await loadPlyModel(btn.dataset.ply);
                 });
+            });
+            
+            // 文件上传
+            const fileInput = document.getElementById('file-input');
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.ply')) {
+                        alert('请上传 .ply 格式的文件');
+                        return;
+                    }
+                    await loadPlyFromFile(file);
+                }
+                // 重置 input，允许重复选择同一文件
+                fileInput.value = '';
             });
 
             // 陀螺仪开关 - 必须在用户点击事件中请求权限
