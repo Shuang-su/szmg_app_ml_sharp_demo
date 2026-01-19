@@ -84,12 +84,94 @@ function initGyroPermission() {
     if (typeof DeviceOrientationEvent !== 'undefined' && 
         typeof DeviceOrientationEvent.requestPermission === 'function') {
         
-        // 首次触摸时请求陀螺仪权限
-        const requestOnFirstTouch = async () => {
+        // 创建权限请求弹窗
+        const overlay = document.createElement('div');
+        overlay.id = 'gyro-permission-overlay';
+        overlay.innerHTML = `
+            <div class="gyro-permission-modal">
+                <div class="gyro-icon">📱</div>
+                <h3>启用空间视差效果</h3>
+                <p>允许访问设备陀螺仪，体验沉浸式3D视觉效果</p>
+                <button id="gyro-enable-btn">启用</button>
+                <button id="gyro-skip-btn">跳过</button>
+            </div>
+        `;
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            animation: fadeIn 0.3s ease-out;
+        `;
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            .gyro-permission-modal {
+                background: white;
+                border-radius: 16px;
+                padding: 32px 24px;
+                text-align: center;
+                max-width: 300px;
+                margin: 20px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            }
+            .gyro-permission-modal .gyro-icon {
+                font-size: 48px;
+                margin-bottom: 16px;
+            }
+            .gyro-permission-modal h3 {
+                margin: 0 0 12px 0;
+                font-size: 18px;
+                color: #222;
+            }
+            .gyro-permission-modal p {
+                margin: 0 0 24px 0;
+                font-size: 14px;
+                color: #666;
+                line-height: 1.5;
+            }
+            .gyro-permission-modal button {
+                width: 100%;
+                padding: 14px;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-bottom: 10px;
+                transition: transform 0.1s, opacity 0.2s;
+            }
+            .gyro-permission-modal button:active {
+                transform: scale(0.98);
+            }
+            #gyro-enable-btn {
+                background: linear-gradient(135deg, #ff4081, #ff79b0);
+                color: white;
+            }
+            #gyro-skip-btn {
+                background: #f5f5f5;
+                color: #666;
+                margin-bottom: 0;
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(overlay);
+        
+        // 启用按钮
+        document.getElementById('gyro-enable-btn').addEventListener('click', async () => {
             try {
                 const permission = await DeviceOrientationEvent.requestPermission();
                 if (permission === 'granted') {
-                    // 启用陀螺仪事件监听
                     spatialParallax.state.gyroPermissionGranted = true;
                     window.addEventListener('deviceorientation', spatialParallax.handleGyro.bind(spatialParallax));
                     showToast('空间视差已启用');
@@ -97,10 +179,15 @@ function initGyroPermission() {
                 }
             } catch (err) {
                 console.error('陀螺仪权限请求失败:', err);
+                showToast('权限请求失败');
             }
-        };
+            overlay.remove();
+        });
         
-        document.addEventListener('touchstart', requestOnFirstTouch, { once: true });
+        // 跳过按钮
+        document.getElementById('gyro-skip-btn').addEventListener('click', () => {
+            overlay.remove();
+        });
     }
 }
 
