@@ -27,9 +27,9 @@
 
 | 技术 | 用途 | 链接 |
 |------|------|------|
-| Apple ml-depth-pro | 从单张图片估计深度图 | [GitHub](https://github.com/apple/ml-depth-pro) |
-| Apple ml-sharp | 基于深度的图像锐化增强 | [GitHub](https://github.com/apple/ml-sharp) |
-| PlayCanvas SuperSplat | 3D 高斯泼溅渲染引擎 | [GitHub](https://github.com/playcanvas/supersplat) |
+| Apple ml-sharp | 从单张图片生成 3D 高斯泼溅模型 | [GitHub](https://github.com/apple/ml-sharp) |
+| PlayCanvas SuperSplat | PLY 模型编辑/导出工具 | [GitHub](https://github.com/playcanvas/supersplat) |
+| PlayCanvas Engine | 浏览器端 3DGS 实时渲染 | [GitHub](https://github.com/playcanvas/engine) |
 | HTML5 + CSS3 + JS | 前端 Web 实现 | - |
 
 ## 📱 页面说明
@@ -119,13 +119,12 @@ szmg_app_ml_sharp_demo/
 ## 🔧 3DGS 工作流程
 
 ```
-原始图片 → ml-depth-pro(深度估计) → ml-sharp(3D增强) → SuperSplat(转PLY) → PlayCanvas(渲染)
+原始图片 → ml-sharp(3D高斯泼溅生成) → SuperSplat(编辑/导出PLY) → PlayCanvas(浏览器渲染)
 ```
 
-1. **深度估计**：使用 Apple ml-depth-pro 从单张图片生成深度图
-2. **3D 增强**：使用 Apple ml-sharp 基于深度进行图像锐化
-3. **模型转换**：使用 PlayCanvas SuperSplat 转换为 PLY 格式的 3DGS 模型
-4. **实时渲染**：在浏览器中使用 PlayCanvas 引擎实时渲染
+1. **3D 模型生成**：使用 Apple ml-sharp 从单张图片生成 3D 高斯泼溅模型
+2. **模型编辑**：使用 PlayCanvas SuperSplat 编辑并导出为 PLY 格式
+3. **实时渲染**：在浏览器中使用 PlayCanvas 引擎实时渲染
 
 ## 🔬 视差原理 (Parallax Principle)
 
