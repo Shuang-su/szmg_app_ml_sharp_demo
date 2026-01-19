@@ -2,17 +2,11 @@
 # 项目: szmg_app_ml_sharp_demo
 
 [build]
-  # 发布目录 - 由于资源分布在多个目录，使用根目录
-  publish = "."
+  # 发布目录 - 使用 frontend 作为根目录
+  publish = "frontend"
   
   # 不需要构建命令（纯静态网站）
   command = ""
-
-# 重定向规则 - 将根路径重定向到 frontend 目录
-[[redirects]]
-  from = "/"
-  to = "/frontend/"
-  status = 302
 
 # 响应头配置
 [[headers]]

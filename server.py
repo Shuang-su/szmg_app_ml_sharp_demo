@@ -10,8 +10,8 @@ import os
 import sys
 
 PORT = 8080
-# 服务整个项目根目录，因为需要访问 frontend/, mirrors/, data/ 等
-DIRECTORY = "."
+# 服务 frontend 目录（包含所有静态资源）
+DIRECTORY = "frontend"
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -32,8 +32,8 @@ if __name__ == "__main__":
     
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         print(f"🚀 Spatial News Demo 服务器已启动")
-        print(f"📱 本地访问: http://localhost:{PORT}/frontend/")
-        print(f"🌐 局域网访问: http://[你的IP]:{PORT}/frontend/")
+        print(f"📱 本地访问: http://localhost:{PORT}")
+        print(f"🌐 局域网访问: http://[你的IP]:{PORT}")
         print(f"")
         print(f"按 Ctrl+C 停止服务器")
         print("-" * 50)
