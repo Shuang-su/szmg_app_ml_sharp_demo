@@ -8,11 +8,11 @@
   # 不需要构建命令（纯静态网站）
   command = ""
 
-# 重定向规则 - 将根路径指向 frontend/index.html
+# 重定向规则 - 将根路径重定向到 frontend 目录
 [[redirects]]
   from = "/"
-  to = "/frontend/index.html"
-  status = 200
+  to = "/frontend/"
+  status = 302
 
 # 响应头配置
 [[headers]]
